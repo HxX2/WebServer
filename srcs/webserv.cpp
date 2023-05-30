@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/28 17:58:04 by zlafou            #+#    #+#             */
-/*   Updated: 2023/05/30 01:45:40 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/05/30 15:46:39 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,23 +18,17 @@
 
 int main()
 {
-	// Server server(PORT);
-	// server.Start();
+	Server server(PORT);
 
-	EventEmitter emitter;
-	EventHandler handler;
-	
-	std::string hello("hello");
-	std::string goodbye("goodbye");
+	server.on(std::string("goodbye"), &server, &Server::sayGoodbye);
 
-	emitter.on(hello, &handler, &EventHandler::sayHello);
-	emitter.on(goodbye, &handler, &EventHandler::sayGoodbye);
-
-	emitter.emit(hello);
+	server.on(std::string("ready"), &server, &Server::Start);
 
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 			
-	emitter.emit(goodbye);
+	server.emit(std::string("ready"));
 		
+	server.emit(std::string("goodbye"));
+
 	return (0);
 }

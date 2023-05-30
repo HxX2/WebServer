@@ -6,13 +6,13 @@
 #    By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/05/28 20:59:02 by zlafou           ###   ########.fr        #
+#    Updated: 2023/05/30 04:05:17 by zlafou           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			= webserv
 
-SRCS			= webserv.cpp Server.cpp EventHandler.cpp
+SRCS			= webserv.cpp Server.cpp
 
 OBJS			= $(SRCS:.cpp=.o)
 
