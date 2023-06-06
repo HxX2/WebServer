@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 21:53:21 by zlafou            #+#    #+#             */
-/*   Updated: 2023/05/30 04:18:56 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/06 16:22:01 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,16 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <EventHandler.hpp>
+#include <Response.hpp>
+
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define YELLOW "\033[1;33m"
+#define BLUE "\033[1;34m"
+#define MAGENTA "\033[1;35m"
+#define CYAN "\033[1;36m"
+#define RESET "\033[0m"
+
 
 class Server : public EventEmitter<Server>
 {
@@ -27,6 +37,8 @@ class Server : public EventEmitter<Server>
 		int					_serverSocket;
 		char				_buffer[1024];
 		int					_opt;
+
+		Response	_getres();
 	public:
 		Server();
 		Server(int port);
@@ -34,6 +46,7 @@ class Server : public EventEmitter<Server>
 		 
 		void	Start();
 		bool	Stop();
+		void	Logger(std::string type);
 };
 
 #endif
