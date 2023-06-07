@@ -6,13 +6,14 @@
 #    By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/06/06 09:44:28 by zlafou           ###   ########.fr        #
+#    Updated: 2023/06/07 07:46:42 by zlafou           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			= webserv
 
 SRCS			= webserv.cpp Server.cpp Response.cpp 
+
 OBJS			= $(SRCS:.cpp=.o)
 
 CPPFLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes #-g -fsanitize=address

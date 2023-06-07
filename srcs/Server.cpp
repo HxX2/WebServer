@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/06 16:56:45 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/07 07:40:44 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ Server::Server(int port)
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket < 0)
 	{
-		std::cerr << "Error: Failed to create socket" << std::endl;
+		std::cerr << RED << "[ERROR] " << RESET <<"Failed to create socket" << std::endl;
 		return ;
 	}
 
@@ -35,18 +35,17 @@ Server::Server(int port)
 
 	if (bind(_serverSocket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
 	{
-		std::cerr << "Error: Failed to bind socket" << std::endl;
-		perror("bind");
+		std::cerr << RED << "[ERROR] " << RESET <<"Failed to bind socket" << std::endl;
 		return ;
 	}
 
 	if (listen(_serverSocket, SOMAXCONN) < 0)
 	{
-		std::cerr << "Error: Failed to listen to connections" << std::endl;
+		std::cerr << RED << "[ERROR] " << RESET <<"Failed to listen to connections" << std::endl;
 		return ;
 	}
 
-	std::cout << YELLOW <<"⚡ " << RESET << "Server listening on "  << "\033[4;34m" <<"http://localhost:" << port  << RESET << "\n" << std::endl;
+	std::cout << YELLOW <<"⚡ " << RESET << "Server listening on "  << "\033[4;34m" << "http://localhost:" << port  << RESET << "\n" << std::endl;
 }
 
 Server::~Server()
@@ -72,7 +71,7 @@ void Server::Start()
 		int activity = select(FD_SETSIZE, &readFds, &writeFds, NULL, NULL);
 		if (activity < 0)
 		{
-			std::cerr << "Error: Failed to select" << std::endl;
+			std::cerr << RED << "[ERROR] " << RESET <<"Failed to select" << std::endl;
 			return ;
 		}
 
@@ -81,7 +80,7 @@ void Server::Start()
 			int clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
 			if (clientSocket < 0)
 			{
-				std::cerr << "Error: Failed to accept connection" << std::endl;
+				std::cerr << RED << "[ERROR] " << RESET <<"Failed to accept connection" << std::endl;
 				return ;
 			}
 			
@@ -122,6 +121,7 @@ Response Server::_getres()
 	res.setHeader(std::string("Date"), res.getCurrentDate());
 	res.setHeader(std::string("Server"), std::string("Webserv"));
 
-	std::cout <<  BLUE << "[RESPONSE] " << RESET << "(" << res.getCurrentDate() << ")" << GREEN << " HTTP : " << RESET << "GET" << " / "  << GREEN << "200" << RESET << std::endl;
+	std::cout <<  BLUE << "[RESPONSE] " << RESET << "(" << res.getCurrentDate() << ")" << GREEN << " HTTP : " << RESET << "GET" << " / "  << GREEN << "200" << RESET << "\n" << std::endl;
+	
 	return (res);
 }

@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 21:53:21 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/06 16:22:01 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/06 18:49:53 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ class Server : public EventEmitter<Server>
 		 
 		void	Start();
 		bool	Stop();
-		void	Logger(std::string type);
 };
 
 #endif
