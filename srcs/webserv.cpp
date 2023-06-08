@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/28 17:58:04 by zlafou            #+#    #+#             */
-/*   Updated: 2023/05/30 15:46:39 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/07 15:02:33 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,13 @@ int main()
 {
 	Server server(PORT);
 
-	server.on(std::string("goodbye"), &server, &Server::sayGoodbye);
-
 	server.on(std::string("ready"), &server, &Server::Start);
 
-	std::this_thread::sleep_for(std::chrono::seconds(3));
-			
+	server.on(std::string("request"), &server, &Server::LogRequest);
+
+	server.on(std::string("response"), &server, &Server::LogResponse);
+
 	server.emit(std::string("ready"));
-		
-	server.emit(std::string("goodbye"));
 
 	return (0);
 }

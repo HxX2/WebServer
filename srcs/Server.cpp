@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/07 07:40:44 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/08 08:17:26 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ void Server::Start()
 			FD_SET(clientSocket, &writeFds);
 
 			recv(clientSocket, _buffer, sizeof(_buffer), 0);
-			std::cout <<  YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
+			this->emit(std::string("request"));
 
 			if (FD_ISSET(clientSocket, &writeFds))
 			{
@@ -117,11 +117,22 @@ Response Server::_getres()
 	res.setStatus(std::string("200"), std::string("OK"));
 	res.setBody(std::string("{ \"message\" : \"Welcome to Webserv\" }"));
 	res.setHeader(std::string("Content-Type"), std::string("application/json"));
-	res.setHeader(std::string("Content-Length"), std::string("36"));	
+	res.setHeader(std::string("Content-Length"), std::string("36"));
 	res.setHeader(std::string("Date"), res.getCurrentDate());
 	res.setHeader(std::string("Server"), std::string("Webserv"));
-
-	std::cout <<  BLUE << "[RESPONSE] " << RESET << "(" << res.getCurrentDate() << ")" << GREEN << " HTTP : " << RESET << "GET" << " / "  << GREEN << "200" << RESET << "\n" << std::endl;
 	
+	this->emit(std::string("response"));
+
 	return (res);
+}
+
+void Server::LogRequest()
+{
+	std::cout <<  YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
+
+}
+
+void Server::LogResponse()
+{
+	std::cout <<  BLUE << "[RESPONSE] " << RESET << "(" << Response::getCurrentDate() << ")" << GREEN << " HTTP : " << RESET << "GET" << " / "  << GREEN << "200" << RESET << "\n" << std::endl;
 }

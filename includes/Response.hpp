@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/06 07:29:40 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/06 13:26:59 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/07 15:06:41 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class Response
 		void setBody(const std::string& body);
 		void send (int socket);
 
-		std::string getCurrentDate();
+		static std::string getCurrentDate();
 };
 
 #endif
