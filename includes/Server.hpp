@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 21:53:21 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/07 14:52:01 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/08 12:10:07 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <fcntl.h>
+
 #include <EventHandler.hpp>
 #include <Response.hpp>
 
@@ -36,7 +38,12 @@ class Server : public EventEmitter<Server>
 		struct sockaddr_in	_serverAddress;
 		int					_serverSocket;
 		char				_buffer[1024];
+		int					_clientSocket;
 		int					_opt;
+
+		fd_set				_currentFds;
+		fd_set				_writeFds;
+		fd_set				_readFds;
 
 		Response	_getres();
 	public:
@@ -48,6 +55,8 @@ class Server : public EventEmitter<Server>
 		bool	Stop();
 		void 	LogRequest();
 		void	LogResponse();
+		void 	SendResponse();
+		bool 	endsWithCRLF(const char* buffer, size_t size);
 };
 
 #endif

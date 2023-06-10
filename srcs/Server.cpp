@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/08 08:17:26 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/08 19:21:39 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,19 @@ Server::Server(int port)
 	if (_serverSocket < 0)
 	{
 		std::cerr << RED << "[ERROR] " << RESET <<"Failed to create socket" << std::endl;
+		return ;
+	}
+
+	// int flags = fcntl(_serverSocket, F_GETFL, 0);
+	// if (flags < 0)
+	// {
+	// 	std::cerr << RED << "[ERROR] " << RESET <<"Failed to get socket flags" << std::endl;
+	// 	return ;
+	// }
+	
+	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << RED << "[ERROR] " << RESET <<"Failed to set socket flags" << std::endl;
 		return ;
 	}
 
@@ -55,49 +68,55 @@ Server::~Server()
 
 void Server::Start()
 {
-	fd_set	currentFds;
-	fd_set	readFds;
-	fd_set	writeFds;
+	ssize_t readSize;
 
-	FD_ZERO(&currentFds);
-	FD_SET(_serverSocket, &currentFds);
+	FD_ZERO(&_currentFds);
+	FD_SET(_serverSocket, &_currentFds);
 	
 	while (true)
 	{
 
-		readFds = writeFds = currentFds;
+		_readFds = _writeFds = _currentFds;
 		memset(_buffer, 0, sizeof(_buffer));
 		
-		int activity = select(FD_SETSIZE, &readFds, &writeFds, NULL, NULL);
+		int activity = select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL);
 		if (activity < 0)
 		{
 			std::cerr << RED << "[ERROR] " << RESET <<"Failed to select" << std::endl;
 			return ;
 		}
 
-		if (FD_ISSET(_serverSocket, &readFds))
+		if (FD_ISSET(_serverSocket, &_readFds))
 		{
-			int clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
-			if (clientSocket < 0)
+			_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
+			if (_clientSocket < 0)
 			{
 				std::cerr << RED << "[ERROR] " << RESET <<"Failed to accept connection" << std::endl;
 				return ;
 			}
 			
-			FD_SET(clientSocket, &readFds);
-			FD_SET(clientSocket, &writeFds);
+			std::cout <<  YELLOW << "[REQUEST] " << RESET << std::endl;
 
-			recv(clientSocket, _buffer, sizeof(_buffer), 0);
-			this->emit(std::string("request"));
-
-			if (FD_ISSET(clientSocket, &writeFds))
+			if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) < 0)
 			{
-				Response res = this->_getres();
-				res.send(clientSocket);
+				std::cerr << RED << "[ERROR] " << RESET <<"Failed to set socket flags" << std::endl;
+				return ;
 			}
+			
+			FD_SET(_clientSocket, &_currentFds);
+		}
 
-			close(clientSocket);
-			FD_CLR(clientSocket, &currentFds);
+		if (FD_ISSET(_clientSocket, &_readFds))
+		{
+			readSize = recv(_clientSocket, _buffer, sizeof(_buffer), 0);
+
+			this->emit(std::string("reading"));
+
+			std::cout << GREEN << "[DEBUG] " << RESET << "readSize = " << readSize << std::endl;
+			
+			if (this->endsWithCRLF(_buffer, readSize))
+				this->emit(std::string("readFinished"));
+
 		}
 	}
 }
@@ -128,11 +147,31 @@ Response Server::_getres()
 
 void Server::LogRequest()
 {
-	std::cout <<  YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
+	std::cout << _buffer << std::endl;
 
 }
 
 void Server::LogResponse()
 {
 	std::cout <<  BLUE << "[RESPONSE] " << RESET << "(" << Response::getCurrentDate() << ")" << GREEN << " HTTP : " << RESET << "GET" << " / "  << GREEN << "200" << RESET << "\n" << std::endl;
+}
+
+void Server::SendResponse()
+{
+	if (FD_ISSET(_clientSocket, &_writeFds))
+	{
+		Response res = this->_getres();
+		res.send(_clientSocket);
+	}
+
+	close(_clientSocket);
+	FD_CLR(_clientSocket, &_currentFds);
+}
+
+
+bool Server::endsWithCRLF(const char* buffer, size_t size)
+{
+	if (size < 2)
+		return (false);
+	return (buffer[size - 1] == '\n' && buffer[size - 2] == '\r');
 }

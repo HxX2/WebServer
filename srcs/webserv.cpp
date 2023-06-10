@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/28 17:58:04 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/07 15:02:33 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/08 12:24:35 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,10 @@ int main()
 
 	server.on(std::string("ready"), &server, &Server::Start);
 
-	server.on(std::string("request"), &server, &Server::LogRequest);
-
+	server.on(std::string("reading"), &server, &Server::LogRequest);
 	server.on(std::string("response"), &server, &Server::LogResponse);
+
+	server.on(std::string("readFinished"), &server, &Server::SendResponse);
 
 	server.emit(std::string("ready"));
 
