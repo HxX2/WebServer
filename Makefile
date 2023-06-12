@@ -3,16 +3,16 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+         #
+#    By: cipher <cipher@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/06/07 07:46:42 by zlafou           ###   ########.fr        #
+#    Updated: 2023/06/12 22:13:53 by cipher           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			= webserv
 
-SRCS			= webserv.cpp Server.cpp Response.cpp 
+SRCS			= webserv.cpp Server.cpp Response.cpp Config.cpp utils.cpp
 
 OBJS			= $(SRCS:.cpp=.o)
 

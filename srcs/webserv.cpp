@@ -3,30 +3,57 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: cipher <cipher@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/28 17:58:04 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/07 15:02:33 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/12 22:14:30 by cipher           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <Server.hpp>
-#include <EventHandler.hpp>
-#include <thread>
+#include "Server.hpp"
+#include "EventHandler.hpp"
+#include "Config.hpp"
 
-#define PORT 8080
+// #define PORT 8080
 
-int main()
+// int main()
+// {
+// 	Server server(PORT);
+
+// 	server.on(std::string("ready"), &server, &Server::Start);
+
+// 	server.on(std::string("request"), &server, &Server::LogRequest);
+
+// 	server.on(std::string("response"), &server, &Server::LogResponse);
+
+// 	server.emit(std::string("ready"));
+
+// 	return (0);
+// }
+
+void print_error(std::string error)
 {
-	Server server(PORT);
+	std::cerr << "Error: " << error << std::endl;
+	exit(EXIT_FAILURE);
+}
 
-	server.on(std::string("ready"), &server, &Server::Start);
+int main(int argc, char *argv[])
+{
+	Config cnf;
 
-	server.on(std::string("request"), &server, &Server::LogRequest);
-
-	server.on(std::string("response"), &server, &Server::LogResponse);
-
-	server.emit(std::string("ready"));
-
+	if (argc != 2)
+		std::cerr << "Usage: ./webserv [config_file.conf]" << std::endl;
+	else
+	{
+		try
+		{
+			cnf.read(argv[1]);
+			cnf.display();
+		}
+		catch (const std::exception &e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
 	return (0);
 }
