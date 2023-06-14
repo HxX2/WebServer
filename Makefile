@@ -6,13 +6,13 @@
 #    By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/06/07 07:46:42 by zlafou           ###   ########.fr        #
+#    Updated: 2023/06/11 19:32:14 by zlafou           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			= webserv
 
-SRCS			= webserv.cpp Server.cpp Response.cpp 
+SRCS			= main.cpp Server.cpp Response.cpp Logger.cpp
 
 OBJS			= $(SRCS:.cpp=.o)
 
