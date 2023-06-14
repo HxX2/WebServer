@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/08 19:21:39 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/11 21:03:06 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,20 +22,13 @@ Server::Server(int port)
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET <<"Failed to create socket" << std::endl;
+		this->log("ERROR", "Failed to create socket");
 		return ;
 	}
-
-	// int flags = fcntl(_serverSocket, F_GETFL, 0);
-	// if (flags < 0)
-	// {
-	// 	std::cerr << RED << "[ERROR] " << RESET <<"Failed to get socket flags" << std::endl;
-	// 	return ;
-	// }
 	
 	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET <<"Failed to set socket flags" << std::endl;
+		this->log("ERROR", "Failed to set socket flags");
 		return ;
 	}
 
@@ -48,13 +41,13 @@ Server::Server(int port)
 
 	if (bind(_serverSocket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET <<"Failed to bind socket" << std::endl;
+		this->log("ERROR", "Failed to bind socket");
 		return ;
 	}
 
 	if (listen(_serverSocket, SOMAXCONN) < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET <<"Failed to listen to connections" << std::endl;
+		this->log("ERROR", "Failed to listen");
 		return ;
 	}
 
@@ -82,7 +75,7 @@ void Server::Start()
 		int activity = select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL);
 		if (activity < 0)
 		{
-			std::cerr << RED << "[ERROR] " << RESET <<"Failed to select" << std::endl;
+			this->log("ERROR", "Failed to select");
 			return ;
 		}
 
@@ -91,7 +84,7 @@ void Server::Start()
 			_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
 			if (_clientSocket < 0)
 			{
-				std::cerr << RED << "[ERROR] " << RESET <<"Failed to accept connection" << std::endl;
+				this->log("ERROR", "Failed to accept client");
 				return ;
 			}
 			
@@ -99,7 +92,7 @@ void Server::Start()
 
 			if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) < 0)
 			{
-				std::cerr << RED << "[ERROR] " << RESET <<"Failed to set socket flags" << std::endl;
+				this->log("ERROR", "Failed to set client socket flags");
 				return ;
 			}
 			
@@ -112,7 +105,7 @@ void Server::Start()
 
 			this->emit(std::string("reading"));
 
-			std::cout << GREEN << "[DEBUG] " << RESET << "readSize = " << readSize << std::endl;
+			this->log("DEBUG", "readSize : " + std::to_string(readSize));
 			
 			if (this->endsWithCRLF(_buffer, readSize))
 				this->emit(std::string("readFinished"));
