@@ -87,33 +87,29 @@ void Config::read(std::string config_filename)
 	}
 }
 
-void LocationBlock::add_directive(std::string &line)
-{
-	_directives.push_back(line);
-}
-
 void ServerBlock::add_location(size_t location_index, std::string &line)
 {
-	if (_locations.size() < location_index + 1)
+	if (_locations.size() <= location_index)
 	{
-		LocationBlock tmp_location;
-		_locations.push_back(tmp_location);
+		LocationBlock *tmp_location = new LocationBlock();
+		_locations.push_back(*tmp_location);
 	}
-	_locations[location_index].add_directive(line);
+	_locations[location_index]._directives.push_back(line);
 }
 
 void Config::add(t_block context, size_t server_index, size_t location_index, std::string &line)
 {
-	(void)context;
-	if (_servers.size() < server_index + 1)
+	// if (_servers.size() < server_index + 1)
+	if (_servers.size() <= server_index)
 	{
-		ServerBlock tmp_server;
-		_servers.push_back(tmp_server);
+		ServerBlock *tmp_server = new ServerBlock();
+		_servers.push_back(*tmp_server);
 	}
 	if (context == LOCATION)
 		_servers[server_index].add_location(location_index, line);
-	std::cout << "\tServers count: " << _servers.size() << ", Locations Count: " << _servers[server_index]._locations.size() << std::endl
-			  << std::endl;
+	// std::cout << "\tServers count: " << _servers.size()
+	// 		  << ", Locations Count: " << _servers[server_index]._locations.size() << std::endl
+	// 		  << std::endl;
 	// else
 	// {
 	// 	_servers[server_index].set_ip(std::string("0.0.0.0"));
@@ -124,7 +120,6 @@ void Config::add(t_block context, size_t server_index, size_t location_index, st
 
 void Config::display(void)
 {
-	std::cout << _servers.size() << std::endl;
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
 		for (size_t j = 0; j < _servers[i]._locations.size(); j++)
