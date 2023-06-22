@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 21:53:21 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/10 18:05:08 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/22 09:55:01 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,10 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <list>
 
-#include <EventHandler.hpp>
+#include <Modules.hpp>
 #include <Response.hpp>
-#include <Logger.hpp>
 
 class Server : public EventEmitter<Server> , public Logger
 {
@@ -32,6 +32,7 @@ class Server : public EventEmitter<Server> , public Logger
 		char				_buffer[1024];
 		int					_clientSocket;
 		int					_opt;
+		std::list<int>		_clients;
 
 		fd_set				_currentFds;
 		fd_set				_writeFds;
@@ -47,7 +48,7 @@ class Server : public EventEmitter<Server> , public Logger
 		bool	Stop();
 		void 	LogRequest();
 		void	LogResponse();
-		void 	SendResponse();
+		void 	SendResponse(int clientSocket);
 		bool 	endsWithCRLF(const char* buffer, size_t size);
 };
 

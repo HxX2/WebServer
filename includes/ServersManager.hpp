@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/11 19:34:54 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/11 19:38:04 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/06/16 11:18:38 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 class ServersManager
 {
     private:
-        <std::vector>Server _servers;
+        std::vector<Server> _servers;
     public:
         ServersManager();
         ~ServersManager();
