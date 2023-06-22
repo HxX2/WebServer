@@ -6,7 +6,7 @@
 /*   By: cipher <cipher@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/12 22:13:28 by cipher           ###   ########.fr       */
+/*   Updated: 2023/06/22 13:26:37 by cipher           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@ Server::Server(int port)
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET << "Failed to create socket" << std::endl;
-		return;
+		std::cerr << RED << "[ERROR] " << RESET <<"Failed to create socket" << std::endl;
+		return ;
 	}
 
 	memset(&_serverAddress, 0, sizeof(_serverAddress));
@@ -34,20 +34,17 @@ Server::Server(int port)
 
 	if (bind(_serverSocket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET << "Failed to bind socket" << std::endl;
-		return;
+		this->log("ERROR", "Failed to bind socket");
+		return ;
 	}
 
 	if (listen(_serverSocket, SOMAXCONN) < 0)
 	{
-		std::cerr << RED << "[ERROR] " << RESET << "Failed to listen to connections" << std::endl;
-		return;
+		this->log("ERROR", "Failed to listen");
+		return ;
 	}
 
-	std::cout << YELLOW << "⚡ " << RESET << "Server listening on "
-			  << "\033[4;34m"
-			  << "http://localhost:" << port << RESET << "\n"
-			  << std::endl;
+	std::cout << YELLOW <<"⚡ " << RESET << "Server listening on "  << "\033[4;34m" << "http://localhost:" << port  << RESET << "\n" << std::endl;
 }
 
 Server::~Server()
@@ -57,49 +54,58 @@ Server::~Server()
 
 void Server::Start()
 {
-	fd_set currentFds;
-	fd_set readFds;
-	fd_set writeFds;
+	fd_set	currentFds;
+	fd_set	readFds;
+	fd_set	writeFds;
 
 	FD_ZERO(&currentFds);
 	FD_SET(_serverSocket, &currentFds);
-
+	
 	while (true)
 	{
 
-		readFds = writeFds = currentFds;
+		_readFds = _writeFds = _currentFds;
 		memset(_buffer, 0, sizeof(_buffer));
-
+		
 		int activity = select(FD_SETSIZE, &readFds, &writeFds, NULL, NULL);
 		if (activity < 0)
 		{
-			std::cerr << RED << "[ERROR] " << RESET << "Failed to select" << std::endl;
-			return;
+			std::cerr << RED << "[ERROR] " << RESET <<"Failed to select" << std::endl;
+			return ;
 		}
 
-		if (FD_ISSET(_serverSocket, &readFds))
+		if (FD_ISSET(_serverSocket, &_readFds))
 		{
-			int clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
-			if (clientSocket < 0)
+			_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
+			if (_clientSocket < 0)
 			{
-				std::cerr << RED << "[ERROR] " << RESET << "Failed to accept connection" << std::endl;
-				return;
+				std::cerr << RED << "[ERROR] " << RESET <<"Failed to accept connection" << std::endl;
+				return ;
 			}
-
+			
 			FD_SET(clientSocket, &readFds);
 			FD_SET(clientSocket, &writeFds);
 
-			recv(clientSocket, _buffer, sizeof(_buffer), 0);
-			this->emit(std::string("request"));
-
-			if (FD_ISSET(clientSocket, &writeFds))
+			if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) < 0)
 			{
-				Response res = this->_getres();
-				res.send(clientSocket);
+				this->log("ERROR", "Failed to set client socket flags");
+				return ;
 			}
+			
+			FD_SET(_clientSocket, &_currentFds);
+		}
 
-			close(clientSocket);
-			FD_CLR(clientSocket, &currentFds);
+		if (FD_ISSET(_clientSocket, &_readFds))
+		{
+			readSize = recv(_clientSocket, _buffer, sizeof(_buffer), 0);
+
+			this->emit(std::string("reading"));
+
+			this->log("DEBUG", "readSize : " + std::to_string(readSize));
+			
+			if (this->endsWithCRLF(_buffer, readSize))
+				this->emit(std::string("readFinished"));
+
 		}
 	}
 }
@@ -129,7 +135,8 @@ Response Server::_getres()
 
 void Server::LogRequest()
 {
-	std::cout << YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
+	std::cout <<  YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
+
 }
 
 void Server::LogResponse()
