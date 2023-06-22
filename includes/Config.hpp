@@ -14,13 +14,13 @@
 class LocationBlock
 {
 public:
-	typedef std::map<std::string, std::string> t_directives_map;
+	typedef std::map<std::string, std::string> t_directives;
 
 private:
 	std::string _path;
 
 public:
-	std::vector<std::string> _directives;
+	t_directives _directives;
 
 	LocationBlock(void)
 	{
@@ -52,7 +52,7 @@ private:
 	std::string _name;
 
 public:
-	std::vector<LocationBlock> _locations;
+	std::vector<LocationBlock *> _locations;
 
 	ServerBlock(void) {}
 
@@ -67,10 +67,13 @@ public:
 	}
 
 	void set_ip(const std::string &ip) { _ip = ip; }
+	const std::string get_ip() { return (_ip); }
 
 	void set_port(int port) { _port = port; }
+	int get_port() { return (_port); }
 
 	void set_name(const std::string &name) { _name = name; }
+	const std::string get_name() { return (_name); }
 
 	void add_location(size_t location_index, std::string &line);
 };
@@ -89,7 +92,7 @@ private:
 	std::ifstream _config_file;
 
 public:
-	std::vector<ServerBlock> _servers;
+	std::vector<ServerBlock *> _servers;
 
 	Config(void);
 	~Config(void);
@@ -98,7 +101,7 @@ public:
 
 	static bool is_server(std::string &line);
 	static bool is_location(std::string &line);
-	void parse_line(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack);
+	void parse(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack);
 	void read(std::string config_filename);
 	void add(t_block context, size_t server_index, size_t location_index, std::string &line);
 	void display(void);
