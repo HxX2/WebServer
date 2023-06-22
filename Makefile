@@ -6,13 +6,13 @@
 #    By: cipher <cipher@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/06/12 22:13:53 by cipher           ###   ########.fr        #
+#    Updated: 2023/06/22 11:08:32 by cipher           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			= webserv
 
-SRCS			= webserv.cpp Server.cpp Response.cpp Config.cpp utils.cpp
+SRCS			= main.cpp utils.cpp Config.cpp Server.cpp Request.cpp Response.cpp
 
 OBJS			= $(SRCS:.cpp=.o)
 
@@ -65,4 +65,4 @@ fclean:	clean | header
 				
 re:	fclean all
 
-.PHONY:	all clean fclean re minishell
+.PHONY:	all clean fclean re
