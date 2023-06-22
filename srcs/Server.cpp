@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: cipher <cipher@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/22 13:26:37 by cipher           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 
 Server::Server() : _opt(1)
@@ -20,10 +8,7 @@ Server::Server(int port)
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket < 0)
-	{
-		std::cerr << RED << "[ERROR] " << RESET <<"Failed to create socket" << std::endl;
-		return ;
-	}
+		log("ERROR", "Failed to create socket");
 
 	memset(&_serverAddress, 0, sizeof(_serverAddress));
 	_serverAddress.sin_family = AF_INET;
@@ -33,18 +18,15 @@ Server::Server(int port)
 	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt));
 
 	if (bind(_serverSocket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
-	{
-		this->log("ERROR", "Failed to bind socket");
-		return ;
-	}
+		log("ERROR", "Failed to bind socket");
 
 	if (listen(_serverSocket, SOMAXCONN) < 0)
-	{
-		this->log("ERROR", "Failed to listen");
-		return ;
-	}
+		log("ERROR", "Failed to listen");
 
-	std::cout << YELLOW <<"⚡ " << RESET << "Server listening on "  << "\033[4;34m" << "http://localhost:" << port  << RESET << "\n" << std::endl;
+	std::cout << YELLOW << "⚡ " << RESET << "Server listening on "
+			  << "\033[4;34m"
+			  << "http://localhost:" << port << RESET << "\n"
+			  << std::endl;
 }
 
 Server::~Server()
@@ -54,44 +36,34 @@ Server::~Server()
 
 void Server::Start()
 {
-	fd_set	currentFds;
-	fd_set	readFds;
-	fd_set	writeFds;
+	fd_set currentFds;
+	fd_set readFds;
+	fd_set writeFds;
+	ssize_t readSize;
 
 	FD_ZERO(&currentFds);
 	FD_SET(_serverSocket, &currentFds);
-	
+
 	while (true)
 	{
-
 		_readFds = _writeFds = _currentFds;
 		memset(_buffer, 0, sizeof(_buffer));
-		
-		int activity = select(FD_SETSIZE, &readFds, &writeFds, NULL, NULL);
-		if (activity < 0)
-		{
-			std::cerr << RED << "[ERROR] " << RESET <<"Failed to select" << std::endl;
-			return ;
-		}
+
+		if (select(FD_SETSIZE, &readFds, &writeFds, NULL, NULL) < 0)
+			log("ERROR", "Failed to select");
 
 		if (FD_ISSET(_serverSocket, &_readFds))
 		{
 			_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
 			if (_clientSocket < 0)
-			{
-				std::cerr << RED << "[ERROR] " << RESET <<"Failed to accept connection" << std::endl;
-				return ;
-			}
-			
-			FD_SET(clientSocket, &readFds);
-			FD_SET(clientSocket, &writeFds);
+				log("ERROR", "Failed to accept connection");
+
+			FD_SET(_clientSocket, &readFds);
+			FD_SET(_clientSocket, &writeFds);
 
 			if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) < 0)
-			{
-				this->log("ERROR", "Failed to set client socket flags");
-				return ;
-			}
-			
+				log("ERROR", "Failed to set client socket flags");
+
 			FD_SET(_clientSocket, &_currentFds);
 		}
 
@@ -101,11 +73,10 @@ void Server::Start()
 
 			this->emit(std::string("reading"));
 
-			this->log("DEBUG", "readSize : " + std::to_string(readSize));
-			
+			log("DEBUG", "readSize : " + std::to_string(readSize));
+
 			if (this->endsWithCRLF(_buffer, readSize))
 				this->emit(std::string("readFinished"));
-
 		}
 	}
 }
@@ -135,8 +106,7 @@ Response Server::_getres()
 
 void Server::LogRequest()
 {
-	std::cout <<  YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
-
+	std::cout << YELLOW << "[REQUEST] " << RESET << _buffer << std::endl;
 }
 
 void Server::LogResponse()

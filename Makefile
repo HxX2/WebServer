@@ -6,13 +6,13 @@
 #    By: cipher <cipher@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/06/22 13:25:21 by cipher           ###   ########.fr        #
+#    Updated: 2023/06/22 13:36:59 by cipher           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			= webserv
 
-SRCS			= main.cpp utils.cpp Config.cpp Server.cpp Request.cpp Response.cpp
+SRCS			= Config.cpp Logger.cpp main.cpp Request.cpp Response.cpp Server.cpp ServersManager.cpp utils.cpp
 
 OBJS			= $(SRCS:.cpp=.o)
 

@@ -17,4 +17,5 @@ Request &Request::operator=(const Request &req)
 
 void Request::parse(std::string req_buffer)
 {
+	(void)req_buffer;
 }
