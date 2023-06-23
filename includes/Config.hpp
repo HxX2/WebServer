@@ -1,110 +1,94 @@
 #ifndef __CONFIG_HPP
 #define __CONFIG_HPP
 
+#include <map>
+#include <stack>
+#include <vector>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <exception>
-#include <vector>
-#include <map>
-#include <stack>
 #include <cstdlib>
+
 #include "utils.hpp"
 
+class LocationBlock;
+class ServerBLock;
+class Config;
+
+// ================= TYPEDEFS
+typedef std::map<std::string, std::string>	t_directives;
+typedef std::vector<LocationBlock *>		t_locations;
+typedef std::vector<ServerBlock *>			t_servers;
+typedef enum { SERVER, LOCATION, NONE }		t_block;
+
+// ================= Classes
 class LocationBlock
 {
-public:
-	typedef std::map<std::string, std::string> t_directives;
+	private:
+		std::string		_path;
+		t_directives	_directives;
 
-private:
-	std::string _path;
+	public:
+		LocationBlock(void);
+		~LocationBlock(void);
+		LocationBlock(const LocationBlock &block);
+		LocationBlock &operator=(const LocationBlock &block);
 
-public:
-	t_directives _directives;
-
-	LocationBlock(void)
-	{
-	}
-
-	~LocationBlock(void)
-	{
-	}
-
-	LocationBlock(const LocationBlock &block)
-	{
-		(void)block;
-	}
-
-	LocationBlock &operator=(const LocationBlock &block)
-	{
-		(void)block;
-		return (*this);
-	}
-
-	void add_directive(std::string &line);
+		void			print_directives(void);
+		size_t			get_directives_count(void);
+		void			add_directive(std::string &line);
+		std::string		get_directive(std::string &name);
 };
 
 class ServerBlock
 {
-private:
-	std::string _ip;
-	int _port;
-	std::string _name;
+	private:
+		size_t				_port;
+		std::string			_name;
+		std::string			_address;
+		t_locations			_locations;
 
-public:
-	std::vector<LocationBlock *> _locations;
+	public:
+		ServerBlock(void);
+		~ServerBlock(void);
+		ServerBlock(const ServerBlock &block);
+		ServerBlock &operator=(const ServerBlock &block);
 
-	ServerBlock(void) {}
+		size_t				get_port() const;
+		void				set_port(int port);
+		const std::string	&get_name() const;
+		void				set_name(const std::string &name);
+		const std::string	&get_address() const;
+		void				set_address(const std::string &ip);
 
-	~ServerBlock(void) {}
-
-	ServerBlock(const ServerBlock &block) { *this = block; }
-
-	ServerBlock &operator=(const ServerBlock &block)
-	{
-		(void)block;
-		return (*this);
-	}
-
-	void set_ip(const std::string &ip) { _ip = ip; }
-	const std::string get_ip() { return (_ip); }
-
-	void set_port(int port) { _port = port; }
-	int get_port() { return (_port); }
-
-	void set_name(const std::string &name) { _name = name; }
-	const std::string get_name() { return (_name); }
-
-	void add_location(size_t location_index, std::string &line);
+		// void add_location(size_t location_index, std::string &line);
+		void			add_location(LocationBlock *new_location);
+		LocationBlock	*get_location(size_t index) const;
+		size_t			get_locations_count(void) const;
 };
 
 class Config
 {
-public:
-	typedef enum
-	{
-		SERVER,
-		LOCATION,
-		NONE
-	} t_block;
+	private:
+		std::ifstream		_config_file;
+		t_servers			_servers;
 
-private:
-	std::ifstream _config_file;
+	public:
 
-public:
-	std::vector<ServerBlock *> _servers;
+		Config(void);
+		~Config(void);
+		Config(const Config &conf);
+		Config &operator=(const Config &conf);
+		
+		const t_servers		&get_servers() const;
+		size_t				get_servers_count() const;
 
-	Config(void);
-	~Config(void);
-	Config(const Config &conf);
-	Config &operator=(const Config &conf);
-
-	static bool is_server(std::string &line);
-	static bool is_location(std::string &line);
-	void parse(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack);
-	void read(std::string config_filename);
-	void add(t_block context, size_t server_index, size_t location_index, std::string &line);
-	void display(void);
+		bool				is_server(std::string &line);
+		bool				is_location(std::string &line);
+		void				read(std::string config_filename);
+		void				parse(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack);
+		void				display(void);
 };
 
 #endif

@@ -1,5 +1,91 @@
 #include "Config.hpp"
 
+// ========== LocationBlock Class
+
+LocationBlock::LocationBlock(void) {}
+
+LocationBlock::~LocationBlock(void) {}
+
+LocationBlock::LocationBlock(const LocationBlock &block) { *this = block; }
+
+LocationBlock &LocationBlock::operator=(const LocationBlock &block)
+{
+	_directives = block._directives;
+	return (*this);
+}
+
+void LocationBlock::print_directives(void)
+{
+	t_directives::iterator it = _directives.begin();
+	while (it != _directives.end())
+	{
+		std::cout << "\t\tDirective [ " << it->first << " ]"
+				  << " => " << it->second << std::endl;
+		it++;
+	}
+}
+
+void LocationBlock::add_directive(std::string &line)
+{
+	size_t name_end;
+	std::string name, value;
+
+	name_end = line.find_first_of(" \t");
+	name = line.substr(0, name_end);
+	value = line.substr(line.find_first_not_of(" \t", name_end));
+	_directives[name] = value;
+}
+
+std::string LocationBlock::get_directive(std::string &name)
+{
+	return (_directives[name]);
+}
+
+size_t LocationBlock::get_directives_count(void)
+{
+	return (_directives.size());
+}
+
+// ========== ServerBlock Class
+
+ServerBlock::ServerBlock(void) {}
+
+ServerBlock::~ServerBlock(void) {}
+
+ServerBlock::ServerBlock(const ServerBlock &block) { *this = block; }
+
+ServerBlock	&ServerBlock::operator=(const ServerBlock &block)
+{
+	(void)block;
+	return (*this);
+}
+
+size_t	ServerBlock::get_port() const { return (_port); }
+void	ServerBlock::set_port(int port) { _port = port; }
+
+void	ServerBlock::set_name(const std::string &name) { _name = name; }
+const std::string	&ServerBlock::get_name() const { return (_name); }
+
+void	ServerBlock::set_address(const std::string &ip) { _address = ip; }
+const std::string	&ServerBlock::get_address() const { return (_address); }
+
+void	ServerBlock::add_location(LocationBlock *new_location)
+{
+	_locations.push_back(new_location);
+}
+
+LocationBlock	*ServerBlock::get_location(size_t index) const
+{
+	return (_locations.at(index));
+}
+
+size_t	ServerBlock::get_locations_count(void) const
+{
+	return (_locations.size());
+}
+
+// ========== Config Class
+
 Config::Config(void) {}
 
 Config::~Config(void) {}
@@ -13,6 +99,16 @@ Config &Config::operator=(const Config &conf)
 {
 	(void)conf;
 	return (*this);
+}
+
+const t_servers &Config::get_servers() const
+{
+	return (_servers);
+}
+
+size_t Config::get_servers_count() const
+{
+	return (_servers.size());
 }
 
 bool Config::is_server(std::string &line)
@@ -74,14 +170,12 @@ void Config::parse(size_t &server_index, size_t &location_index, t_block &contex
 			}
 			if (context == LOCATION)
 			{
-				if (_servers[server_index]->_locations.size() <= location_index)
+				if (_servers[server_index]->get_locations_count() <= location_index)
 				{
 					LocationBlock *location = new LocationBlock();
-					_servers[server_index]->_locations.push_back(location);
+					_servers[server_index]->add_location(location);
 				}
-				std::string line = parse_stack.top();
-				size_t directive_name_end = line.find_first_of(" \t");
-				_servers[server_index]->_locations[location_index]->_directives[line.substr(0, directive_name_end)] = line.substr(line.find_first_not_of(" \t", directive_name_end));
+				_servers[server_index]->get_location(location_index)->add_directive(parse_stack.top());
 			}
 			parse_stack.pop();
 		}
@@ -94,17 +188,11 @@ void Config::display(void)
 {
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
-		std::cout << "Server [ " << i + 1 << " ] : NAME = " << _servers[i]->get_name() << ", IP = " << _servers[i]->get_ip() << ", PORT = " << _servers[i]->get_port() << std::endl;
-		for (size_t j = 0; j < _servers[i]->_locations.size(); j++)
+		std::cout << "Server [ " << i + 1 << " ] : NAME = " << _servers[i]->get_name() << ", IP = " << _servers[i]->get_address() << ", PORT = " << _servers[i]->get_port() << std::endl;
+		for (size_t j = 0; j < _servers[i]->get_locations_count(); j++)
 		{
-			std::cout << "\tLocation [ " << j + 1 << " ],      " << _servers[i]->_locations[j]->_directives.size() << std::endl;
-			LocationBlock::t_directives::iterator it = _servers[i]->_locations[j]->_directives.begin();
-			while (it != _servers[i]->_locations[j]->_directives.end())
-			{
-				std::cout << "\t\tDirective [ " << it->first << " ]"
-						  << " => " << it->second << std::endl;
-				it++;
-			}
+			std::cout << "\tLocation [ " << j + 1 << " ]" << std::endl;
+			_servers[i]->get_location(j)->print_directives();
 		}
 	}
 }

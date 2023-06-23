@@ -73,7 +73,7 @@ void Server::Start()
 
 			this->emit(std::string("reading"));
 
-			log("DEBUG", "readSize : " + std::to_string(readSize));
+			// log("DEBUG", "readSize : " + std::to_string(readSize));
 
 			if (this->endsWithCRLF(_buffer, readSize))
 				this->emit(std::string("readFinished"));
@@ -114,4 +114,11 @@ void Server::LogResponse()
 	std::cout << BLUE << "[RESPONSE] " << RESET << "(" << Response::getCurrentDate() << ")" << GREEN << " HTTP : " << RESET << "GET"
 			  << " / " << GREEN << "200" << RESET << "\n"
 			  << std::endl;
+}
+
+bool Server::endsWithCRLF(const char *buffer, size_t size)
+{
+	(void)buffer;
+	(void)size;
+	return (true);
 }
