@@ -12,8 +12,16 @@
 
 #include "utils.hpp"
 
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define YELLOW "\033[1;33m"
+#define BLUE "\033[1;34m"
+#define MAGENTA "\033[1;35m"
+#define CYAN "\033[1;36m"
+#define RESET "\033[0m"
+
 class LocationBlock;
-class ServerBLock;
+class ServerBlock;
 class Config;
 
 // ================= TYPEDEFS
@@ -26,8 +34,8 @@ typedef enum { SERVER, LOCATION, NONE }		t_block;
 class LocationBlock
 {
 	private:
-		std::string		_path;
-		t_directives	_directives;
+		std::string			_path;
+		t_directives		_directives;
 
 	public:
 		LocationBlock(void);
@@ -35,10 +43,11 @@ class LocationBlock
 		LocationBlock(const LocationBlock &block);
 		LocationBlock &operator=(const LocationBlock &block);
 
-		void			print_directives(void);
-		size_t			get_directives_count(void);
-		void			add_directive(std::string &line);
-		std::string		get_directive(std::string &name);
+		size_t				get_directives_count(void) const;
+		void				set_path(std::string &path);
+		const std::string&	get_path(void) const;
+		t_directives&		get_all_directives(void);
+		void				add_directive(std::string &line);
 };
 
 class ServerBlock
@@ -57,15 +66,15 @@ class ServerBlock
 
 		size_t				get_port() const;
 		void				set_port(int port);
-		const std::string	&get_name() const;
+		const std::string&	get_name() const;
 		void				set_name(const std::string &name);
-		const std::string	&get_address() const;
+		const std::string&	get_address() const;
 		void				set_address(const std::string &ip);
 
-		// void add_location(size_t location_index, std::string &line);
 		void			add_location(LocationBlock *new_location);
 		LocationBlock	*get_location(size_t index) const;
 		size_t			get_locations_count(void) const;
+		void			set_params(std::string &line);
 };
 
 class Config
@@ -75,20 +84,21 @@ class Config
 		t_servers			_servers;
 
 	public:
-
 		Config(void);
 		~Config(void);
 		Config(const Config &conf);
 		Config &operator=(const Config &conf);
-		
-		const t_servers		&get_servers() const;
-		size_t				get_servers_count() const;
 
-		bool				is_server(std::string &line);
-		bool				is_location(std::string &line);
-		void				read(std::string config_filename);
-		void				parse(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack);
-		void				display(void);
+		t_servers		get_servers() const;
+		size_t			get_servers_count() const;
+		bool			is_server(std::string &line);
+		bool			is_location(std::string &line);
+		void			read(std::string config_filename);
+		void			parse(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack);
 };
+
+std::ostream&	operator<<(std::ostream& stream, const LocationBlock& location);
+std::ostream&	operator<<(std::ostream& stream, const ServerBlock& server);
+std::ostream&	operator<<(std::ostream& stream, const Config& conf);
 
 #endif

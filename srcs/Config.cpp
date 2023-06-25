@@ -8,24 +8,19 @@ LocationBlock::~LocationBlock(void) {}
 
 LocationBlock::LocationBlock(const LocationBlock &block) { *this = block; }
 
-LocationBlock &LocationBlock::operator=(const LocationBlock &block)
+LocationBlock	&LocationBlock::operator=(const LocationBlock &block)
 {
+	_path = block._path;
 	_directives = block._directives;
 	return (*this);
 }
 
-void LocationBlock::print_directives(void)
+size_t	LocationBlock::get_directives_count(void) const
 {
-	t_directives::iterator it = _directives.begin();
-	while (it != _directives.end())
-	{
-		std::cout << "\t\tDirective [ " << it->first << " ]"
-				  << " => " << it->second << std::endl;
-		it++;
-	}
+	return (_directives.size());
 }
 
-void LocationBlock::add_directive(std::string &line)
+void	LocationBlock::add_directive(std::string &line)
 {
 	size_t name_end;
 	std::string name, value;
@@ -36,14 +31,30 @@ void LocationBlock::add_directive(std::string &line)
 	_directives[name] = value;
 }
 
-std::string LocationBlock::get_directive(std::string &name)
+void	LocationBlock::set_path(std::string &path)
 {
-	return (_directives[name]);
+	_path = path;
 }
 
-size_t LocationBlock::get_directives_count(void)
+const std::string	&LocationBlock::get_path(void) const
 {
-	return (_directives.size());
+	return (_path);
+}
+
+t_directives&	LocationBlock::get_all_directives(void)
+{
+	return (_directives);
+}
+
+std::ostream& operator<<(std::ostream& stream, LocationBlock& location)
+{
+	t_directives::iterator it = location.get_all_directives().begin();
+	while (it != location.get_all_directives().end())
+	{
+		stream << YELLOW << "\t\tDirective [ " + it->first + " ]" << RESET << " => " << it->second << std::endl;
+		it++;
+	}
+	return (stream);
 }
 
 // ========== ServerBlock Class
@@ -84,6 +95,44 @@ size_t	ServerBlock::get_locations_count(void) const
 	return (_locations.size());
 }
 
+void	ServerBlock::set_params(std::string &line)
+{
+	size_t e;
+	std::string name, value;
+
+	e = line.find_first_of(" \t");
+	name = line.substr(0, e);
+	value = line.substr(line.find_first_not_of(" \t", e));
+	if (name == "server_name")
+		set_name(value);
+	else if (name == "listen")
+	{
+		if ((e = value.find(":")) != std::string::npos)
+		{
+			set_address(value.substr(0, e));
+			set_port(std::stoi(value.substr(e + 1)));
+		}
+		else
+		{
+			if ((e = value.find(".") != std::string::npos))
+				set_address(value);
+			else
+				set_port(std::stoi(value));
+		}
+	}
+}
+
+std::ostream& operator<<(std::ostream& stream, const ServerBlock& server)
+{
+	stream << "NAME = " << server.get_name() << ", IP = " << server.get_address() << ", PORT = " << server.get_port() << std::endl;
+	for (size_t j = 0; j < server.get_locations_count(); j++)
+	{
+		stream << BLUE << "\tLocation [ " << j + 1 << " ]: " << RESET << "\"" << server.get_location(j)->get_path() << "\"" << std::endl;
+		stream << *(server.get_location(j));
+	}
+	return (stream);
+}
+
 // ========== Config Class
 
 Config::Config(void) {}
@@ -101,7 +150,7 @@ Config &Config::operator=(const Config &conf)
 	return (*this);
 }
 
-const t_servers &Config::get_servers() const
+t_servers	Config::get_servers() const
 {
 	return (_servers);
 }
@@ -123,11 +172,11 @@ bool Config::is_location(std::string &line)
 
 void Config::read(std::string config_filename)
 {
+	t_block context = NONE;
+	std::string tmp_line;
 	size_t server_index = -1;
 	size_t location_index = -1;
-	std::string tmp_line;
 	std::stack<std::string> parse_stack;
-	t_block context = NONE;
 
 	_config_file.open(config_filename.c_str());
 	if (_config_file.fail())
@@ -149,10 +198,8 @@ void Config::parse(size_t &server_index, size_t &location_index, t_block &contex
 	if (Config::is_server(line) || Config::is_location(line) || line != "}")
 	{
 		parse_stack.push(line);
-		if (is_location(line))
-			context = LOCATION;
-		if (is_server(line))
-			context = SERVER;
+		if (is_server(line)) context = SERVER;
+		if (is_location(line)) context = LOCATION;
 		server_index += is_server(line);
 		if (Config::is_server(line))
 			location_index = -1;
@@ -177,6 +224,12 @@ void Config::parse(size_t &server_index, size_t &location_index, t_block &contex
 				}
 				_servers[server_index]->get_location(location_index)->add_directive(parse_stack.top());
 			}
+			else if (context == SERVER)
+			{
+				// std::cout << parse_stack.top() << std::endl;
+				_servers[server_index]->set_params(parse_stack.top());
+				// std::cout << line << std::endl;
+			}
 			parse_stack.pop();
 		}
 		parse_stack.pop();
@@ -184,15 +237,11 @@ void Config::parse(size_t &server_index, size_t &location_index, t_block &contex
 	}
 }
 
-void Config::display(void)
+std::ostream& operator<<(std::ostream& stream, const Config& conf)
 {
-	for (size_t i = 0; i < _servers.size(); i++)
-	{
-		std::cout << "Server [ " << i + 1 << " ] : NAME = " << _servers[i]->get_name() << ", IP = " << _servers[i]->get_address() << ", PORT = " << _servers[i]->get_port() << std::endl;
-		for (size_t j = 0; j < _servers[i]->get_locations_count(); j++)
-		{
-			std::cout << "\tLocation [ " << j + 1 << " ]" << std::endl;
-			_servers[i]->get_location(j)->print_directives();
-		}
-	}
+	t_servers servers = conf.get_servers();
+
+    for (size_t i = 0; i < conf.get_servers_count(); i++)
+		stream << GREEN << "==> Server [ " << i + 1 << " ]: " << RESET<< *(servers[i]);
+    return stream;
 }

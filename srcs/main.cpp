@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 		try
 		{
 			cnf.read(argv[1]);
-			cnf.display();
+			std::cout << cnf;
 		}
 		catch (const std::exception &e)
 		{
