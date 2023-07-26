@@ -8,14 +8,16 @@
 
 class Request
 {
-private:
-public:
-	Request(void);
-	~Request(void);
-	Request(const Request &conf);
-	Request &operator=(const Request &conf);
+	private:
+		size_t	_socket_fd;
 
-	void parse(std::string req_buffer);
+	public:
+		Request(void);
+		~Request(void);
+		Request(const Request &conf);
+		Request &operator=(const Request &conf);
+
+		void parse(std::string req_buffer);
 };
 
 #endif

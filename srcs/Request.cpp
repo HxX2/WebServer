@@ -11,7 +11,7 @@ Request::Request(const Request &req)
 
 Request &Request::operator=(const Request &req)
 {
-	(void)req;
+	_socket_fd = req._socket_fd;
 	return (*this);
 }
 

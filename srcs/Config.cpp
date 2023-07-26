@@ -1,247 +1,155 @@
 #include "Config.hpp"
 
-// ========== LocationBlock Class
-
-LocationBlock::LocationBlock(void) {}
-
-LocationBlock::~LocationBlock(void) {}
-
-LocationBlock::LocationBlock(const LocationBlock &block) { *this = block; }
-
-LocationBlock	&LocationBlock::operator=(const LocationBlock &block)
-{
-	_path = block._path;
-	_directives = block._directives;
-	return (*this);
-}
-
-size_t	LocationBlock::get_directives_count(void) const
-{
-	return (_directives.size());
-}
-
-void	LocationBlock::add_directive(std::string &line)
-{
-	size_t name_end;
-	std::string name, value;
-
-	name_end = line.find_first_of(" \t");
-	name = line.substr(0, name_end);
-	value = line.substr(line.find_first_not_of(" \t", name_end));
-	_directives[name] = value;
-}
-
-void	LocationBlock::set_path(std::string &path)
-{
-	_path = path;
-}
-
-const std::string	&LocationBlock::get_path(void) const
-{
-	return (_path);
-}
-
-t_directives&	LocationBlock::get_all_directives(void)
-{
-	return (_directives);
-}
-
-std::ostream& operator<<(std::ostream& stream, LocationBlock& location)
-{
-	t_directives::iterator it = location.get_all_directives().begin();
-	while (it != location.get_all_directives().end())
-	{
-		stream << YELLOW << "\t\tDirective [ " + it->first + " ]" << RESET << " => " << it->second << std::endl;
-		it++;
-	}
-	return (stream);
-}
-
-// ========== ServerBlock Class
-
-ServerBlock::ServerBlock(void) {}
-
-ServerBlock::~ServerBlock(void) {}
-
-ServerBlock::ServerBlock(const ServerBlock &block) { *this = block; }
-
-ServerBlock	&ServerBlock::operator=(const ServerBlock &block)
-{
-	(void)block;
-	return (*this);
-}
-
-size_t	ServerBlock::get_port() const { return (_port); }
-void	ServerBlock::set_port(int port) { _port = port; }
-
-void	ServerBlock::set_name(const std::string &name) { _name = name; }
-const std::string	&ServerBlock::get_name() const { return (_name); }
-
-void	ServerBlock::set_address(const std::string &ip) { _address = ip; }
-const std::string	&ServerBlock::get_address() const { return (_address); }
-
-void	ServerBlock::add_location(LocationBlock *new_location)
-{
-	_locations.push_back(new_location);
-}
-
-LocationBlock	*ServerBlock::get_location(size_t index) const
-{
-	return (_locations.at(index));
-}
-
-size_t	ServerBlock::get_locations_count(void) const
-{
-	return (_locations.size());
-}
-
-void	ServerBlock::set_params(std::string &line)
-{
-	size_t e;
-	std::string name, value;
-
-	e = line.find_first_of(" \t");
-	name = line.substr(0, e);
-	value = line.substr(line.find_first_not_of(" \t", e));
-	if (name == "server_name")
-		set_name(value);
-	else if (name == "listen")
-	{
-		if ((e = value.find(":")) != std::string::npos)
-		{
-			set_address(value.substr(0, e));
-			set_port(std::stoi(value.substr(e + 1)));
-		}
-		else
-		{
-			if ((e = value.find(".") != std::string::npos))
-				set_address(value);
-			else
-				set_port(std::stoi(value));
-		}
-	}
-}
-
-std::ostream& operator<<(std::ostream& stream, const ServerBlock& server)
-{
-	stream << "NAME = " << server.get_name() << ", IP = " << server.get_address() << ", PORT = " << server.get_port() << std::endl;
-	for (size_t j = 0; j < server.get_locations_count(); j++)
-	{
-		stream << BLUE << "\tLocation [ " << j + 1 << " ]: " << RESET << "\"" << server.get_location(j)->get_path() << "\"" << std::endl;
-		stream << *(server.get_location(j));
-	}
-	return (stream);
-}
-
-// ========== Config Class
-
 Config::Config(void) {}
 
 Config::~Config(void) {}
 
-Config::Config(const Config &conf)
-{
-	*this = conf;
-}
+Config::Config(const Config &conf) { *this = conf; }
 
 Config &Config::operator=(const Config &conf)
 {
-	(void)conf;
+	_servers = conf._servers;
 	return (*this);
 }
 
-t_servers	Config::get_servers() const
+t_servers Config::get_servers() const { return (_servers); }
+
+size_t Config::size() const { return (_servers.size()); }
+
+bool Config::is_server(std::string &line) const
 {
-	return (_servers);
+	return (
+		!line.compare(0, 6, "server")
+		&& (std::string(" {\n").find(line[6]) != std::string::npos || line.size() == 6)
+	);
 }
 
-size_t Config::get_servers_count() const
+bool Config::is_location(std::string &line) const
 {
-	return (_servers.size());
+	return (
+		!line.compare(0, 8, "location")
+		&& std::string(" {\n").find(line[8]) != std::string::npos
+	);
 }
 
-bool Config::is_server(std::string &line)
+void Config::read(std::string filename)
 {
-	return (!line.compare(0, 6, "server") && std::string(" {\n").find(line[6]) != std::string::npos);
-}
+	parse_params params;
 
-bool Config::is_location(std::string &line)
-{
-	return (!line.compare(0, 8, "location") && std::string(" {\n").find(line[8]) != std::string::npos);
-}
-
-void Config::read(std::string config_filename)
-{
-	t_block context = NONE;
-	std::string tmp_line;
-	size_t server_index = -1;
-	size_t location_index = -1;
-	std::stack<std::string> parse_stack;
-
-	_config_file.open(config_filename.c_str());
+	_config_file.open(filename.c_str());
 	if (_config_file.fail())
-		throw std::invalid_argument("Error: Unable to open config file");
+		throw std::invalid_argument("Unable to open config file");
 	else
 	{
-		while (std::getline(_config_file, tmp_line))
+		while (std::getline(_config_file, params.tmp_line))
 		{
-			utils::remove_comments(tmp_line);
-			utils::trim_str(tmp_line);
-			if (!tmp_line.empty())
-				parse(server_index, location_index, context, tmp_line, parse_stack);
+			utils::remove_comments(params.tmp_line);
+			utils::trim_str(params.tmp_line);
+			if (!params.tmp_line.empty()) parse(params);
 		}
+		if (params.stack.size() != 0)
+			throw std::invalid_argument("Brakets not closed properly");
+		if (this->size() == 0)
+			throw std::invalid_argument("The config file is empty");
 	}
 }
 
-void Config::parse(size_t &server_index, size_t &location_index, t_block &context, std::string &line, std::stack<std::string> &parse_stack)
+bool	Config::is_block_head(std::string &line) const
 {
-	if (Config::is_server(line) || Config::is_location(line) || line != "}")
+	return (is_server(line) || is_location(line));
+}
+
+void	Config::parse(parse_params &params)
+{
+	if (is_block_head(params.tmp_line) || params.tmp_line != "}")
 	{
-		parse_stack.push(line);
-		if (is_server(line)) context = SERVER;
-		if (is_location(line)) context = LOCATION;
-		server_index += is_server(line);
-		if (Config::is_server(line))
-			location_index = -1;
-		location_index += is_location(line);
-	}
-	else if (line == "}")
-	{
-		while (
-			!parse_stack.empty() && !is_server(parse_stack.top()) && !is_location(parse_stack.top()) && parse_stack.top() != "{")
+		params.stack.push(params.tmp_line);
+		if (is_server(params.tmp_line))
+			params.set(SERVER);
+		else if (is_location(params.tmp_line))
 		{
-			if (_servers.size() <= server_index)
-			{
-				ServerBlock *server = new ServerBlock();
-				_servers.push_back(server);
-			}
-			if (context == LOCATION)
-			{
-				if (_servers[server_index]->get_locations_count() <= location_index)
-				{
-					LocationBlock *location = new LocationBlock();
-					_servers[server_index]->add_location(location);
-				}
-				_servers[server_index]->get_location(location_index)->add_directive(parse_stack.top());
-			}
-			else if (context == SERVER)
-			{
-				// std::cout << parse_stack.top() << std::endl;
-				_servers[server_index]->set_params(parse_stack.top());
-				// std::cout << line << std::endl;
-			}
-			parse_stack.pop();
+			if (params.block == GLOBAL)
+				throw std::invalid_argument("Location block needs to be inside a server block");
+			params.set(LOCATION);
 		}
-		parse_stack.pop();
-		context = (context == LOCATION ? SERVER : LOCATION);
+	}
+	else if (params.tmp_line == "}")
+	{
+		while (!params.stack.empty() && !is_block_head(params.stack.top()))
+		{
+			if (_servers.size() <= (size_t)params.server_index)
+				_servers.push_back(new ServerBlock);
+			if (params.block == SERVER)
+				_servers[params.server_index]->set_params(params.stack.top());
+			else
+			{
+				if (_servers[params.server_index]->size() <= (size_t)params.location_index)
+					_servers[params.server_index]->add_location(new LocationBlock);
+				_servers[params.server_index]->get_location(params.location_index)->add_directive(params.stack.top());
+			}
+			params.stack.pop();
+		}
+		if (params.block == SERVER && _servers[params.server_index]->size() == 0)
+			throw std::invalid_argument("Server block needs to have at least 1 location");
+		else if (params.block == LOCATION)
+			_servers[params.server_index]->get_location(params.location_index)->set_path(params.stack.top());
+		params.stack.pop();
+		params.block = (params.block == LOCATION ? SERVER : GLOBAL);
 	}
 }
 
-std::ostream& operator<<(std::ostream& stream, const Config& conf)
+Config::t_sockets	Config::get_sockets()
+{
+	t_sockets	result;
+	t_socket	tmp;
+	bool		is_new;
+
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		is_new = true;
+		for (size_t j = 0; j < result.size(); j++)
+		{
+			if (_servers[i]->is_match(result[j].address, result[j].port))
+			{
+				is_new = false;
+				break ;
+			}
+		}
+		if (is_new)
+		{
+			tmp.address = _servers[i]->get_address();
+			tmp.port = _servers[i]->get_port();
+			result.push_back(tmp);
+		}
+	}
+
+	return (result);
+}
+
+// TODO: improve matching
+t_directives	Config::get_config(const std::string &address, const size_t port, const std::string &path)
+{
+	t_directives	empty;
+
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		if (_servers[i]->is_match(address, port))
+		{
+			for (size_t j = 0; j < _servers[i]->size(); j++)
+			{
+				if (_servers[i]->get_location(j)->get_path() == path)
+					return (_servers[i]->get_location(j)->get_directives());
+			}
+		}
+	}
+	return (empty);
+}
+
+std::ostream &operator<<(std::ostream &stream, const Config &conf)
 {
 	t_servers servers = conf.get_servers();
 
-    for (size_t i = 0; i < conf.get_servers_count(); i++)
-		stream << GREEN << "==> Server [ " << i + 1 << " ]: " << RESET<< *(servers[i]);
-    return stream;
+	for (size_t i = 0; i < conf.size(); i++)
+		stream << GREEN << "==> Server [ " << i + 1 << " ]: " << RESET << *(servers[i]);
+	return stream;
 }

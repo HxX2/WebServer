@@ -2,10 +2,19 @@ CC			= c++
 
 NAME		= webserv
 
-FLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes
+FLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes #-g3 -fsanitize=address
 
 SRCS_DIR	= srcs
-SRCS		= Config.cpp Logger.cpp main.cpp Request.cpp Response.cpp Server.cpp ServersManager.cpp utils.cpp
+SRCS		= Config.cpp \
+			  Config_Location.cpp \
+			  Config_Server.cpp \
+			  Logger.cpp \
+			  main.cpp \
+			  Request.cpp \
+			  Response.cpp \
+			  Server.cpp \
+			  ServersManager.cpp \
+			  utils.cpp
 
 OBJ_DIR		= obj
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))

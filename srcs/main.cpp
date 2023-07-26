@@ -1,14 +1,6 @@
-#include "Server.hpp"
-#include "EventHandler.hpp"
 #include "Config.hpp"
 
-void print_error(std::string error)
-{
-	std::cerr << "Error: " << error << std::endl;
-	exit(EXIT_FAILURE);
-}
-
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	Config cnf;
 
@@ -23,7 +15,7 @@ int main(int argc, char *argv[])
 		}
 		catch (const std::exception &e)
 		{
-			std::cerr << e.what() << '\n';
+			std::cerr << RED << "🛑 Error: " << RESET << e.what() << '\n';
 		}
 	}
 	return (0);
