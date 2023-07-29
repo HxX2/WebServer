@@ -1,25 +1,11 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServersManager.cpp                                 :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/06/11 19:38:44 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/11 19:49:30 by zlafou           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include <ServersManager.hpp>
+#include "ServersManager.hpp"
 
 ServersManager::ServersManager()
 {
-    
 }
 
 ServersManager::~ServersManager()
 {
-    
 }
 
 void ServersManager::addServer(Server server)
@@ -29,16 +15,26 @@ void ServersManager::addServer(Server server)
 
 void ServersManager::removeServer(Server server)
 {
-    this->_servers.erase(server);
+    (void)server;
+    // this->_servers.erase(server);
 }
 
 void ServersManager::startServers()
 {
-    for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
-        it->emit(std::string("ready")
+    std::vector<Server>::iterator it = this->_servers.begin();
+    while (it != this->_servers.end())
+    {
+        it->emit(std::string("ready"));
+        it++;
+    }
 }
 
 void ServersManager::stopServers()
 {
-    
+    std::vector<Server>::iterator it = this->_servers.begin();
+    while (it != this->_servers.end())
+    {
+        it->emit(std::string("ready"));
+        it++;
+    }
 }

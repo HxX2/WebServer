@@ -1,68 +1,38 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/05/28 18:05:37 by zlafou            #+#    #+#              #
-#    Updated: 2023/06/16 21:01:09 by zlafou           ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+CC			= c++
 
-NAME			= webserv
+NAME		= webserv
 
-SRCS			= main.cpp Server.cpp Response.cpp Logger.cpp Indexer.cpp
+FLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes #-g3 -fsanitize=address
 
-OBJS			= $(SRCS:.cpp=.o)
+SRCS_DIR	= srcs
+SRCS		= Config.cpp \
+			  Config_Location.cpp \
+			  Config_Server.cpp \
+			  Logger.cpp \
+			  main.cpp \
+			  Request.cpp \
+			  Response.cpp \
+			  Server.cpp \
+			  ServersManager.cpp \
+			  utils.cpp
 
-CPPFLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes #-g -fsanitize=address
+OBJ_DIR		= obj
+OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
-CPP				= c++
+all: $(NAME)
 
-VPATH 			= ./srcs
+$(NAME): $(OBJS)
+	$(CC) $(OBJS) $(FLAGS) -o $(NAME)
 
-HEADER			= "\033[0;35m   █░░░█ █▀▀ █▀▀▄ █▀▀ █▀▀ █▀▀█ ▀█░█▀  \n   █▄█▄█ █▀▀ █▀▀▄ ▀▀█ █▀▀ █▄▄▀ ░█▄█░   \n   ░▀░▀░ ▀▀▀ ▀▀▀░ ▀▀▀ ▀▀▀ ▀░▀▀ ░░▀░░\033[0;0m"
+$(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp
+	$(CC) $(FLAGS) -c $< -o $@
 
-FOOTER			= "\033[0;35m➔\033[0;0m type \033[0;34m./$(NAME)\033[0;0m to run the webserver."
-
-vpath $(SRCS) $(VPATH)
-
-all: $(NAME) | footer
-
-header :
-	@echo
-	@echo $(HEADER)
-	@echo
-
-footer :
-	@echo $(FOOTER)
-
-.cpp.o: 
-	@sleep 0.003
-	@printf "\33[2K\r\033[1mmaking object \033[0;34m➔\033[0;0m\033[0;35m $@ \033[0;0m"
-	-@$(CPP) $(CPPFLAGS) -c $< -o $@
-
-$(NAME): | header $(OBJS)
-	@echo
-	@echo
-	@echo "\033[0;35m\033[1m────── making webserv ──────\033[0;0m"
-	@printf "\033[2m"
-	$(CPP) ${OBJS} $(CPPFLAGS) -o ${NAME}
-	@echo "\033[0;0"
-
-clean: | header
-	@echo "\033[0;35m\033[1m────── clean webserv ──────\033[0;0m"
-	@printf "\033[2m"
+clean:
 	rm -rf $(OBJS)
-	@echo "\033[0;0m"
 
-fclean:	clean | header
-	@echo "\033[0;35m\033[1m────── fclean webserv ──────\033[0;0m"
-	@printf "\033[2m"
+fclean:	clean
 	rm -rf $(NAME)
-	@echo "\033[0;0m"
-				
+
 re:	fclean all
 
-.PHONY:	all clean fclean re minishell
+.PHONY:	all clean fclean re

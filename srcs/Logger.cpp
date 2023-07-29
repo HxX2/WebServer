@@ -19,7 +19,6 @@ Logger::Logger() : _DEBUG(DEBUG)
 
 Logger::~Logger()
 {
-    
 }
 
 void Logger::setDebug(bool value)

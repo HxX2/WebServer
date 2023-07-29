@@ -3,28 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: cipher <cipher@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 21:53:21 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/22 09:55:01 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/07/11 04:33:26 by cipher           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef _SERVER_HPP_
-# define _SERVER_HPP_
+#define _SERVER_HPP_
 
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <list>
 
 #include <Modules.hpp>
 #include <Response.hpp>
 
-class Server : public EventEmitter<Server> , public Logger
+class Server : public EventEmitter<Server>, public Logger
 {
 	private:
 		struct sockaddr_in	_serverAddress;

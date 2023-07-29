@@ -38,6 +38,7 @@ Server::Server(int port)
 	if (listen(_serverSocket, SOMAXCONN) < 0)
 		this->log("ERROR", "Failed to listen");
 
+
 	std::cout << YELLOW << "⚡ " << RESET << "Server listening on "
 			  << "\033[4;34m"
 			  << "http://localhost:" << port << RESET << "\n"
@@ -51,6 +52,9 @@ Server::~Server()
 
 void Server::Start()
 {
+	fd_set currentFds;
+	fd_set readFds;
+	fd_set writeFds;
 	ssize_t readSize;
 
 	FD_ZERO(&_currentFds);
@@ -58,7 +62,6 @@ void Server::Start()
 
 	while (true)
 	{
-
 		_readFds = _writeFds = _currentFds;
 		memset(_buffer, 0, sizeof(_buffer));
 
@@ -166,3 +169,4 @@ bool Server::endsWithCRLF(const char *buffer, size_t size)
 		return (false);
 	return (buffer[size - 1] == '\n' && buffer[size - 2] == '\r');
 }
+

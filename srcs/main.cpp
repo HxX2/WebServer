@@ -1,32 +1,22 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/28 17:58:04 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/22 09:53:31 by zlafou           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "Config.hpp"
 
-#include <Server.hpp>
-#include <Modules.hpp>
-#include <thread>
-
-#define PORT 8081
-
-int main()
+int main(int argc, const char *argv[])
 {
-	Server server(PORT);
+	Config cnf;
 
-	server.on(std::string("ready"), &server, &Server::Start);
-
-	server.on(std::string("reading"), &server, &Server::LogRequest);
-	server.on(std::string("response"), &server, &Server::LogResponse);
-
-	server.emit(std::string("ready"));
-
-
+	if (argc != 2)
+		std::cerr << "Usage: ./webserv [config_file.conf]" << std::endl;
+	else
+	{
+		try
+		{
+			cnf.read(argv[1]);
+			std::cout << cnf;
+		}
+		catch (const std::exception &e)
+		{
+			std::cerr << RED << "🛑 Error: " << RESET << e.what() << '\n';
+		}
+	}
 	return (0);
 }
