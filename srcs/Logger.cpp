@@ -1,7 +1,20 @@
-#include "Logger.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Logger.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/10 17:40:56 by zlafou            #+#    #+#             */
+/*   Updated: 2023/06/19 01:10:35 by zlafou           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-Logger::Logger() : _DEBUG(false)
+#include <Modules.hpp>
+
+Logger::Logger() : _DEBUG(DEBUG)
 {
+    
 }
 
 Logger::~Logger()
@@ -20,6 +33,8 @@ void Logger::log(std::string type, std::string msg)
     else if (type == "ERROR")
     {
         std::cerr << RED << "[" << type << "] " << RESET << msg << std::endl;
+		if (this->_DEBUG)
+			perror("msg");
         exit(1);
     }
     else if (type == "WARNING")
