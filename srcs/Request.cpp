@@ -2,20 +2,38 @@
 
 Request::Request(void) {}
 
-Request::~Request(void) {}
-
-Request::Request(const Request &req)
+Request::Request(char *buffer)
 {
-	*this = req;
+	_stream << buffer;
+	if (_stream.str().empty())
+		throw std::invalid_argument("empty request");
+	_parse_request();
+	_check_request();
 }
 
-Request &Request::operator=(const Request &req)
+Request::~Request(void) {}
+
+Request::Request(const Request &conf) { *this = conf; }
+
+Request	&Request::operator=(const Request &conf)
 {
-	_socket_fd = req._socket_fd;
+	(void)conf;
 	return (*this);
 }
 
-void Request::parse(std::string req_buffer)
+void	Request::_parse_request(void)
 {
-	(void)req_buffer;
+	size_t		crlf_s, crlf_e;
+	std::string	tmp;
+
+	while ((crlf_e = _stream.str().find_first_of("\r\n")) != std::string::npos)
+	{
+		
+		std::cout << "[" << tmp.substr() << "]";
+	}
 }
+
+void	Request::_check_request(void)
+{}
+
+// std::ostream&	operator<<(std::ostream& stream, const Request& request) {}
