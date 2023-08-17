@@ -23,8 +23,8 @@
 #include <cstring>
 
 #include "EventHandler.hpp"
-#include "Response.hpp"
 #include "Logger.hpp"
+#include "Response.hpp"
 
 class Server : public EventEmitter<Server>, public Logger
 {

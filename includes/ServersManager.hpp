@@ -11,13 +11,13 @@
 /* ************************************************************************** */
 
 #ifndef _SERVERSMANAGER_HPP_
-#define _SERVERSMANAGER_HPP_
+# define _SERVERSMANAGER_HPP_
 
-#include <iostream>
-#include <string>
-#include <vector>
+# include <iostream>
+# include <string>
+# include <vector>
 
-#include "Server.hpp"
+# include "Server.hpp"
 
 class ServersManager
 {
