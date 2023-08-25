@@ -20,38 +20,38 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <cstring>
+#include <list>
 
-#include "EventHandler.hpp"
-#include "Logger.hpp"
-#include "Response.hpp"
+
+#include <Modules.hpp>
+#include <Response.hpp>
 
 class Server : public EventEmitter<Server>, public Logger
 {
-private:
-	struct sockaddr_in _serverAddress;
-	int _serverSocket;
-	char _buffer[1024];
-	int _clientSocket;
-	int _opt;
+	private:
+		struct sockaddr_in	_serverAddress;
+		int					_serverSocket;
+		char				_buffer[1024];
+		int					_clientSocket;
+		int					_opt;
+		std::list<int>		_clients;
 
-	fd_set _currentFds;
-	fd_set _writeFds;
-	fd_set _readFds;
+		fd_set				_currentFds;
+		fd_set				_writeFds;
+		fd_set				_readFds;
 
-	Response _getres();
-
-public:
-	Server();
-	Server(int port);
-	~Server();
-
-	void Start();
-	bool Stop();
-	void LogRequest();
-	void LogResponse();
-	void SendResponse();
-	bool endsWithCRLF(const char *buffer, size_t size);
+		Response	_getres();
+	public:
+		Server();
+		Server(int port);
+		~Server();
+		 
+		void	Start();
+		bool	Stop();
+		void 	LogRequest();
+		void	LogResponse();
+		void 	SendResponse(int clientSocket);
+		bool 	endsWithCRLF(const char* buffer, size_t size);
 };
 
 #endif
