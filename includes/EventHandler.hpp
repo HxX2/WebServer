@@ -1,22 +1,12 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   EventHandler.hpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/28 20:20:30 by zlafou            #+#    #+#             */
-/*   Updated: 2023/05/30 15:57:31 by zlafou           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef _EVENTHANDLER_HPP_
 # define _EVENTHANDLER_HPP_
 
-#include <iostream>
-#include <map>
-#include <vector>
-#include <functional>
+# include <iostream>
+# include <map>
+# include <vector>
+# include <functional>
+
+# include "general.hpp"
 
 class EventHandler
 {

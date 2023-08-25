@@ -31,7 +31,7 @@ class Response
 	public:
 		Response();
 		~Response();
-		
+
 		void setVersion(const std::string& version);
 		void setStatus(const std::string& code, const std::string& name);
 		void setHeader(const std::string& key, const std::string& value);

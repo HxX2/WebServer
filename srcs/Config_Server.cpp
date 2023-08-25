@@ -67,6 +67,7 @@ void ServerBlock::set_params(std::string &line)
 	directive.parse(line);
 	if (!directive.is_valid())
 		throw std::invalid_argument("server in config contains invalid directive");
+	// TODO: handle empty string ""
 	if (directive.key == "server_name")
 		set_name(directive.value);
 	else if (directive.key == "host")
@@ -93,13 +94,28 @@ bool	ServerBlock::is_match(const std::string &address, const size_t port) const
 	return (address == this->_address && port == this->_port);
 }
 
+const utils::t_str_arr &ServerBlock::get_paths(void) const
+{
+	return (_paths);
+}
+
+void	ServerBlock::add_path(std::string &line)
+{
+	size_t path_start, path_end;
+
+	path_start = line.find_first_of(" \t");
+	path_end = line.find_last_of(" \t");
+	_paths.push_back(line.substr(path_start + 1, path_end - path_start - 1));
+}
+
 std::ostream &operator<<(std::ostream &stream, const ServerBlock &server)
 {
 	stream << "NAME = " << server.get_name() << ", IP = " << server.get_address() << ", PORT = " << server.get_port() << std::endl;
+	stream << "PATHS:";
+	for (size_t i = 0; i < server.get_paths().size(); i++)
+		stream << (i == 0 ? " " : ", ") << server.get_paths()[i];
+	stream << std::endl;
 	for (size_t j = 0; j < server.size(); j++)
-	{
-		stream << BLUE << "\tLocation [ " << j + 1 << " ]: " << RESET << "\"" << server.get_location(j)->get_path() << "\"" << std::endl;
 		stream << *(server.get_location(j));
-	}
 	return (stream);
 }

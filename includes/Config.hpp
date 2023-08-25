@@ -1,26 +1,22 @@
 #ifndef __CONFIG_HPP
-#define __CONFIG_HPP
+# define __CONFIG_HPP
 
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <map>
-#include <stack>
-#include <vector>
-#include <exception>
-#include <cstdlib>
-#include <arpa/inet.h>
+# include <arpa/inet.h>
 
-#include "utils.hpp"
+# include <iostream>
+# include <fstream>
+# include <iomanip>
+# include <cstdlib>
+# include <exception>
+# include <map>
+# include <stack>
+# include <vector>
 
-#define RED "\033[1;31m"
-#define GREEN "\033[1;32m"
-#define YELLOW "\033[1;33m"
-#define BLUE "\033[1;34m"
-#define MAGENTA "\033[1;35m"
-#define CYAN "\033[1;36m"
-#define RESET "\033[0m"
+# include "general.hpp"
+# include "Request.hpp"
+# include "utils.hpp"
 
+class Request;
 class LocationBlock;
 class ServerBlock;
 class Config;
@@ -93,6 +89,7 @@ class ServerBlock
 		size_t				_port;
 		std::string			_address;
 		t_locations			_locations;
+		utils::t_str_arr	_paths;
 
 	public:
 		ServerBlock(void);
@@ -100,20 +97,22 @@ class ServerBlock
 		ServerBlock(const ServerBlock &block);
 		ServerBlock &operator=(const ServerBlock &block);
 
-		size_t				get_port() const;
-		void				set_port(int port);
-		const std::string&	get_name() const;
-		void				set_name(const std::string &name);
-		const std::string&	get_address() const;
-		void				set_address(const std::string &ip);
+		size_t					get_port() const;
+		void					set_port(int port);
+		const std::string&		get_name() const;
+		void					set_name(const std::string &name);
+		const std::string&		get_address() const;
+		void					set_address(const std::string &ip);
 
-		void				add_location(LocationBlock *new_location);
-		LocationBlock		*get_location(size_t index) const;
-		size_t				size(void) const;
-		void				set_params(std::string &line);
-		bool				is_address_valid(const std::string &address) const;
-		bool				is_port_valid(const size_t &port) const;
-		bool				is_match(const std::string &address, const size_t port) const;
+		void					add_location(LocationBlock *new_location);
+		LocationBlock			*get_location(size_t index) const;
+		size_t					size(void) const;
+		void					set_params(std::string &line);
+		bool					is_address_valid(const std::string &address) const;
+		bool					is_port_valid(const size_t &port) const;
+		bool					is_match(const std::string &address, const size_t port) const;
+		const utils::t_str_arr	&get_paths(void) const;
+		void					add_path(std::string &line);
 };
 
 struct parse_params {
@@ -167,7 +166,7 @@ class Config
 		bool			is_block_head(std::string &line) const;
 		void			parse(parse_params &params);
 		t_sockets		get_sockets();
-		t_directives	get_config(const std::string &address, const size_t port, const std::string &path);
+		t_directives	get_config(Request &request);
 };
 
 std::ostream&	operator<<(std::ostream& stream, const LocationBlock& location);

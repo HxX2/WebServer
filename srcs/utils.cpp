@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-void utils::remove_comments(std::string &str)
+void	utils::remove_comments(std::string &str)
 {
 	size_t s = str.find('#');
 	if (s != std::string::npos)
@@ -10,17 +10,15 @@ void utils::remove_comments(std::string &str)
 		str.erase(bracket, 1);
 }
 
-void utils::trim_str(std::string &str)
+void	utils::trim_str(std::string &str)
 {
 	size_t s, e;
 
-	if (str.empty()) return ;
-	for (s = 0; str[s] == ' ' || str[s] == '\t'; s++)
-		;
-	for (e = str.size() - 1; str[e] == ' ' || str[e] == '\t'; e--)
-		;
-	str.erase(e + 1);
+	if (str.empty()) return;
+	for (s = 0; str[s] == ' ' || str[s] == '\t'; s++);
 	str.erase(0, s);
+	for (e = str.size() - 1; !str.empty() && (str[e] == ' ' || str[e] == '\t'); e--);
+	str.erase(e + 1);
 	if (!str.empty() && str.at(str.size() - 1) == ';')
 		str.erase(str.size() - 1);
 	if ((s = str.find_first_of(" \t")) != std::string::npos)
@@ -30,9 +28,9 @@ void utils::trim_str(std::string &str)
 	}
 }
 
-std::vector<std::string> utils::split_str(std::string str, char sep)
+utils::t_str_arr	utils::split_str(std::string str, char sep)
 {
-	std::vector<std::string> result;
+	utils::t_str_arr result;
 	size_t start = 0, sep_pos = -1;
 
 	while ((sep_pos = str.find(sep, start)))
@@ -47,9 +45,9 @@ std::vector<std::string> utils::split_str(std::string str, char sep)
 	return (result);
 }
 
-std::vector<std::string> utils::split_str(std::string str, std::string sep)
+utils::t_str_arr	utils::split_str(std::string str, std::string sep)
 {
-	std::vector<std::string> result;
+	utils::t_str_arr result;
 	size_t start = 0, sep_pos = -1;
 
 	while ((sep_pos = str.find(sep, start)))
@@ -80,4 +78,14 @@ size_t	utils::not_find_in(std::string& line, const char *chars, size_t pos, cons
 	if ((i = line.find_first_not_of(chars, pos)) == std::string::npos)
 		throw std::invalid_argument(error);
 	return (i);
+}
+
+bool	utils::vector_contains(utils::t_str_arr &array, const std::string &element)
+{
+	for (size_t i = 0; i < array.size(); i++)
+	{
+		if (array[i] == element)
+			return (true);
+	}
+	return (false);
 }

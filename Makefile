@@ -2,7 +2,7 @@ CC			= c++
 
 NAME		= webserv
 
-FLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes #-g3 -fsanitize=address
+FLAGS		= -Wall -Wextra -Werror -std=c++98 -I ./includes
 
 SRCS_DIR	= srcs
 SRCS		= Config.cpp \
@@ -14,7 +14,8 @@ SRCS		= Config.cpp \
 			  Response.cpp \
 			  Server.cpp \
 			  ServersManager.cpp \
-			  utils.cpp
+			  utils.cpp \
+			  socket.cpp
 
 OBJ_DIR		= obj
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
@@ -23,6 +24,9 @@ all: $(NAME)
 
 $(NAME): $(OBJS)
 	$(CC) $(OBJS) $(FLAGS) -o $(NAME)
+
+debug: $(OBJS)
+	$(CC) $(OBJS) $(FLAGS) -g3 -fsanitize=address -o $(NAME)
 
 $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	$(CC) $(FLAGS) -c $< -o $@

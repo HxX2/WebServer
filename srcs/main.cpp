@@ -1,4 +1,13 @@
 #include "Config.hpp"
+#include "Request.hpp"
+
+void mock_server(void (*handle_request)(size_t, char *, Config &conf), Config &conf);
+
+void handle_request(size_t socket_fd, char *buffer, Config &server_config)
+{
+	Request req(socket_fd, buffer);
+	req.parseRequest(server_config);
+}
 
 int main(int argc, const char *argv[])
 {
@@ -11,12 +20,13 @@ int main(int argc, const char *argv[])
 		try
 		{
 			cnf.read(argv[1]);
-			std::cout << cnf;
+			mock_server(handle_request, cnf);
 		}
 		catch (const std::exception &e)
 		{
 			std::cerr << RED << "🛑 Error: " << RESET << e.what() << '\n';
 		}
 	}
+
 	return (0);
 }
