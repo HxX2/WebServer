@@ -58,7 +58,7 @@ void mock_server(void (*handle_request)(size_t, char *, Config &conf), Config &c
 {
 	size_t		socket_fd, max_fds, ready_fd;
 	fd_set		main_fds, working_fds;
-	char		buffer[10000];
+	char		buffer[100000];
 
 	socket_fd = create_socket(INADDR_ANY, 8080);
 

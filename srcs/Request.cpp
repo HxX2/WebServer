@@ -12,10 +12,15 @@ Request::Request(void) {}
  */
 Request::Request(size_t socket_fd, char *buffer)
 {
+	struct sockaddr_in	addr;
+	int					ret;
+	socklen_t			addr_len = sizeof(addr);
+
 	_socket_fd = socket_fd;
 	_stream << buffer;
-	// if (_stream.str().empty())
-	// 	throw std::invalid_argument("empty request");
+
+	ret = getsockname(_socket_fd, (struct sockaddr *)&addr, &addr_len);
+	if (!ret) _address = inet_ntoa(addr.sin_addr);
 }
 
 /**
@@ -50,20 +55,20 @@ Request	&Request::operator=(const Request &req)
  * @param line a reference to the string to put the line in
  * @return returns a boolean
  */
-bool	Request::_readline(std::string &line)
+bool	Request::_readline(std::string &line, bool include_CRLF)
 {
-	// TODO: handle CRLF+WS as a single line
 	size_t start_i = _stream.tellg();
 	size_t end_i;
 
 	if (_stream.peek() == -1)
 		return (false);
 	end_i = _stream.str().find("\r\n", start_i);
-	// while (end_i != std::string::npos && _stream.str().at(end_i + 2) == ' ')
-	// 	end_i = _stream.str().find("\r\n", start_i);
 	if (end_i != std::string::npos)
 	{
-		line = _stream.str().substr(start_i, end_i - start_i);
+		if (include_CRLF)
+			line = _stream.str().substr(start_i, (end_i + 2) - start_i);
+		else
+			line = _stream.str().substr(start_i, end_i - start_i);
 		_stream.seekg(end_i + 2);
 		return (true);
 	}
@@ -100,14 +105,7 @@ void	Request::_setHeader(std::string &line)
  */
 void	Request::parseRequest(Config &server_config)
 {
-	struct sockaddr_in	addr;
-	std::string			temp_line;
-	int					ret;
-	socklen_t			addr_len = sizeof(addr);
-
-	// Set Request address
-	ret = getsockname(_socket_fd, (struct sockaddr *)&addr, &addr_len);
-	if (!ret) _address = inet_ntoa(addr.sin_addr);
+	std::string		temp_line;
 
 	// Set Request line
 	while (_readline(temp_line))
@@ -121,7 +119,7 @@ void	Request::parseRequest(Config &server_config)
 		_setHeader(temp_line);
 	}
 
-	if (_headers.count("Host") > 0)
+	if (_headers.count("Host") != 0)
 	{
 		utils::t_str_arr split_host = utils::split_str(_headers["Host"], ':');
 		if (split_host.size() == 2)
@@ -130,10 +128,17 @@ void	Request::parseRequest(Config &server_config)
 			_port = atoi(split_host[1].c_str());
 		}
 	}
-
+	
 	// Set Request body
-	while (_readline(temp_line))
-		_body.append(temp_line);
+	if (_headers.count("Transfer-Encoding") != 0 && _headers["Transfer-Encoding"] == "chunked")
+	{
+		// TODO: finish handeling both chunked and not chunked request bodies
+	}
+	else
+	{
+		while (_readline(temp_line, true))
+			_body.append(temp_line);
+	}
 
 	_config = server_config.get_config(*this);
 
@@ -162,25 +167,25 @@ std::ostream&	operator<<(std::ostream& stream, const Request& request)
 		   << "Path: [" + request.getPath() + "], "
 		   << "Version: [" + request.getVersion() + "]\n";
 
-	Request::string_map	headers = request.getHeaders();
-	Request::string_map::const_iterator	header_it = headers.begin();
+	Request::t_headers	headers = request.getHeaders();
+	Request::t_headers::const_iterator	header_it = headers.begin();
 	while (header_it != headers.end())
 	{
-		stream << "\t[" + header_it->first + "]: [" + header_it->second + "]\n";
+		stream << "\t" + header_it->first + ": [" + header_it->second + "]\n";
 		header_it++;
 	}
-	
+
 	stream << "Config:\n";
-	Request::string_map	config = request.getConfig();
-	Request::string_map::const_iterator	config_it = config.begin();
+	Request::t_headers	config = request.getConfig();
+	Request::t_headers::const_iterator	config_it = config.begin();
 	while (config_it != config.end())
 	{
-		stream << "\t[" + config_it->first + "]: [" + config_it->second + "]\n";
+		stream << "\t" + config_it->first + ": [" + config_it->second + "]\n";
 		config_it++;
 	}
 
 	if (request.getBody().size() > 0)
-		std::cout << "[Body]: \n" << request.getBody() << std::endl;
+		std::cout << "Body: \n" << request.getBody() << std::endl;
 
 	return (stream);
 }

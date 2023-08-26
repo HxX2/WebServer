@@ -1,8 +1,9 @@
 #ifndef __UTILS_HPP
-#define __UTILS_HPP
+# define __UTILS_HPP
 
-#include <iostream>
-#include <vector>
+# include <iostream>
+# include <sstream>
+# include <vector>
 
 namespace utils
 {
@@ -15,6 +16,7 @@ namespace utils
 	size_t			find_in(std::string& line, const char *chars, size_t pos, const char *error);
 	size_t			not_find_in(std::string& line, const char *chars, size_t pos, const char *error);
 	bool			vector_contains(t_str_arr &array, const std::string &element);
+	unsigned int	hex_to_decimal( const std::string &hex );
 };
 
 #endif

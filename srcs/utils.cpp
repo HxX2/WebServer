@@ -89,3 +89,14 @@ bool	utils::vector_contains(utils::t_str_arr &array, const std::string &element)
 	}
 	return (false);
 }
+
+unsigned int utils::hex_to_decimal( const std::string &hex )
+{
+    unsigned int dec;
+    std::stringstream ss;
+
+    ss << std::hex << hex;
+    ss >> dec;
+
+    return dec;
+}

@@ -5,8 +5,11 @@ void mock_server(void (*handle_request)(size_t, char *, Config &conf), Config &c
 
 void handle_request(size_t socket_fd, char *buffer, Config &server_config)
 {
-	Request req(socket_fd, buffer);
-	req.parseRequest(server_config);
+	// Request req(socket_fd, buffer);
+	// req.parseRequest(server_config);
+	(void)socket_fd;
+	(void)server_config;
+	std::cout << buffer << std::endl;
 }
 
 int main(int argc, const char *argv[])
