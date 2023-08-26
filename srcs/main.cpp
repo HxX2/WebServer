@@ -1,7 +1,6 @@
 #include "Config.hpp"
 #include "Request.hpp"
-
-void mock_server(void (*handle_request)(size_t, char *, Config &conf), Config &conf);
+#include <ServersManager.hpp>
 
 void handle_request(size_t socket_fd, char *buffer, Config &server_config)
 {
@@ -12,6 +11,7 @@ void handle_request(size_t socket_fd, char *buffer, Config &server_config)
 int main(int argc, const char *argv[])
 {
 	Config cnf;
+	ServersManager manager;
 
 	if (argc != 2)
 		std::cerr << "Usage: ./webserv [config_file.conf]" << std::endl;
@@ -20,7 +20,9 @@ int main(int argc, const char *argv[])
 		try
 		{
 			cnf.read(argv[1]);
-			mock_server(handle_request, cnf);
+			manager.loadConfig(cnf);
+			manager.startServers();
+			// mock_server(handle_request, cnf);
 		}
 		catch (const std::exception &e)
 		{

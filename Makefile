@@ -15,7 +15,8 @@ SRCS		= Config.cpp \
 			  Server.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \
-			  socket.cpp
+			  Indexer.cpp \
+			  
 
 OBJ_DIR		= obj
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))

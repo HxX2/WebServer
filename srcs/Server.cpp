@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/22 10:57:20 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/08/26 05:59:59 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ Server::Server() : _opt(1)
 {
 }
 
-Server::Server(int port)
+Server::Server(int port, std::string address)
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket < 0)
@@ -28,20 +28,22 @@ Server::Server(int port)
 	memset(&_serverAddress, 0, sizeof(_serverAddress));
 	_serverAddress.sin_family = AF_INET;
 	_serverAddress.sin_port = htons(port);
-	_serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+	_serverAddress.sin_addr.s_addr = inet_addr(address.c_str());
 
 	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt));
 
 	if (bind(_serverSocket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
+	{
+		printf("port %d host %s \n", port, address.c_str());
 		this->log("ERROR", "Failed to bind socket");
+	}
 
 	if (listen(_serverSocket, SOMAXCONN) < 0)
 		this->log("ERROR", "Failed to listen");
 
-
 	std::cout << YELLOW << "⚡ " << RESET << "Server listening on "
 			  << "\033[4;34m"
-			  << "http://localhost:" << port << RESET << "\n"
+			  << "http://" << address << ":" << port << RESET << "\n"
 			  << std::endl;
 }
 
@@ -52,14 +54,10 @@ Server::~Server()
 
 void Server::Start()
 {
-	fd_set currentFds;
-	fd_set readFds;
-	fd_set writeFds;
-	ssize_t readSize;
-
 	FD_ZERO(&_currentFds);
 	FD_SET(_serverSocket, &_currentFds);
 
+	std::cout << _serverSocket << std::endl;
 	while (true)
 	{
 		_readFds = _writeFds = _currentFds;
@@ -73,7 +71,7 @@ void Server::Start()
 		{
 			_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
 
-			this->log("DEBUG", std::to_string(_clientSocket) + std::string(" is accepted"));
+			// this->log("DEBUG", std::to_string(_clientSocket) + std::string(" is accepted"));
 
 			if (_clientSocket < 0)
 				this->log("ERROR", "Failed to accept client");
@@ -93,11 +91,11 @@ void Server::Start()
 
 			if (FD_ISSET(*it, &_readFds))
 			{
-				readSize = recv(*it, _buffer, sizeof(_buffer), 0);
+				ssize_t readSize = recv(*it, _buffer, sizeof(_buffer), 0);
 
 				this->emit(std::string("reading"));
 
-				this->log("DEBUG", "readSize : " + std::to_string(readSize));
+				this->log("DEBUG", "readSize : " + this->to_string(readSize));
 
 				this->SendResponse(*it);
 
@@ -118,7 +116,7 @@ Response Server::_getres()
 	Response res = Response();
 	Indexer indexer;
 
-	indexer.index(std::string("/Users/zlafou/42-cursus/webserver"));
+	indexer.index(std::string("/nfs/homes/zlafou/42-cursus/WebServer"));
 
 	std::string body = indexer.getHtml();
 
@@ -130,7 +128,7 @@ Response Server::_getres()
 
 	res.setBody(body);
 	res.setHeader(std::string("Content-Type"), std::string("text/html"));
-	res.setHeader(std::string("Content-Length"), std::to_string(body.length()));
+	res.setHeader(std::string("Content-Length"), this->to_string(body.length()));
 	res.setHeader(std::string("Date"), res.getCurrentDate());
 	res.setHeader(std::string("Server"), std::string("Webserv"));
 
@@ -169,4 +167,3 @@ bool Server::endsWithCRLF(const char *buffer, size_t size)
 		return (false);
 	return (buffer[size - 1] == '\n' && buffer[size - 2] == '\r');
 }
-

@@ -11,6 +11,7 @@
 .vscode
 README.md
 .DS_Store
+.nfs*
 
 # make
 a.out

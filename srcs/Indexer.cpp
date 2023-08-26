@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/16 10:37:30 by zlafou            #+#    #+#             */
-/*   Updated: 2023/06/19 01:05:08 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/08/26 06:03:02 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,27 +14,23 @@
 
 Indexer::Indexer()
 {
-    
 }
 
 Indexer::~Indexer()
 {
-    
 }
 
 void Indexer::index(const std::string &path)
 {
-    _dir = opendir(path.c_str());
-    if (_dir == NULL)
-        this->log("ERROR", "Indexer : Cannot open directory");
-    while ((_ent = readdir(_dir)) != NULL)
-    {
+	_dir = opendir(path.c_str());
+	if (_dir == NULL)
+		this->log("ERROR", "Indexer : Cannot open directory");
+	while ((_ent = readdir(_dir)) != NULL)
+	{
 		this->setLinks(path + std::string("/") + std::string(_ent->d_name), std::string(_ent->d_name));
-    }
-    closedir(_dir);
-    
+	}
+	closedir(_dir);
 }
-
 
 void Indexer::setLinks(std::string filePath, std::string fileName)
 {
@@ -49,16 +45,15 @@ void Indexer::setLinks(std::string filePath, std::string fileName)
 	if (fileName != "." && fileName != "..")
 	{
 		if (S_ISDIR(fileStat.st_mode))
-			_links += "<a href=\"" + fileName + "/\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + std::to_string(fileStat.st_size / 1024) + " KB</span>";
+			_links += "<a href=\"" + fileName + "/\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + utils::to_string(fileStat.st_size / 1024) + " KB</span>";
 		else
-			_links += "<a href=\"" + fileName + "\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + std::to_string(fileStat.st_size / 1024) + " KB</span>";
+			_links += "<a href=\"" + fileName + "\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + utils::to_string(fileStat.st_size / 1024) + " KB</span>";
 	}
 }
 
-
 std::string Indexer::getHtml()
 {
-	_htmlFile.open("html/indexer.html");
+	_htmlFile.open("/nfs/homes/zlafou/42-cursus/WebServer/html/Indexer.html");
 
 	if (_htmlFile.is_open())
 	{
@@ -75,8 +70,6 @@ std::string Indexer::getHtml()
 	return ("");
 }
 
-
 void Indexer::close()
 {
-    
 }

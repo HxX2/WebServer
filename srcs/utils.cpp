@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-void	utils::remove_comments(std::string &str)
+void utils::remove_comments(std::string &str)
 {
 	size_t s = str.find('#');
 	if (s != std::string::npos)
@@ -10,14 +10,17 @@ void	utils::remove_comments(std::string &str)
 		str.erase(bracket, 1);
 }
 
-void	utils::trim_str(std::string &str)
+void utils::trim_str(std::string &str)
 {
 	size_t s, e;
 
-	if (str.empty()) return;
-	for (s = 0; str[s] == ' ' || str[s] == '\t'; s++);
+	if (str.empty())
+		return;
+	for (s = 0; str[s] == ' ' || str[s] == '\t'; s++)
+		;
 	str.erase(0, s);
-	for (e = str.size() - 1; !str.empty() && (str[e] == ' ' || str[e] == '\t'); e--);
+	for (e = str.size() - 1; !str.empty() && (str[e] == ' ' || str[e] == '\t'); e--)
+		;
 	str.erase(e + 1);
 	if (!str.empty() && str.at(str.size() - 1) == ';')
 		str.erase(str.size() - 1);
@@ -28,7 +31,7 @@ void	utils::trim_str(std::string &str)
 	}
 }
 
-utils::t_str_arr	utils::split_str(std::string str, char sep)
+utils::t_str_arr utils::split_str(std::string str, char sep)
 {
 	utils::t_str_arr result;
 	size_t start = 0, sep_pos = -1;
@@ -45,7 +48,7 @@ utils::t_str_arr	utils::split_str(std::string str, char sep)
 	return (result);
 }
 
-utils::t_str_arr	utils::split_str(std::string str, std::string sep)
+utils::t_str_arr utils::split_str(std::string str, std::string sep)
 {
 	utils::t_str_arr result;
 	size_t start = 0, sep_pos = -1;
@@ -62,7 +65,7 @@ utils::t_str_arr	utils::split_str(std::string str, std::string sep)
 	return (result);
 }
 
-size_t	utils::find_in(std::string& line, const char *chars, size_t pos, const char *error)
+size_t utils::find_in(std::string &line, const char *chars, size_t pos, const char *error)
 {
 	size_t i;
 
@@ -71,7 +74,7 @@ size_t	utils::find_in(std::string& line, const char *chars, size_t pos, const ch
 	return (i);
 }
 
-size_t	utils::not_find_in(std::string& line, const char *chars, size_t pos, const char *error)
+size_t utils::not_find_in(std::string &line, const char *chars, size_t pos, const char *error)
 {
 	size_t i;
 
@@ -80,7 +83,7 @@ size_t	utils::not_find_in(std::string& line, const char *chars, size_t pos, cons
 	return (i);
 }
 
-bool	utils::vector_contains(utils::t_str_arr &array, const std::string &element)
+bool utils::vector_contains(utils::t_str_arr &array, const std::string &element)
 {
 	for (size_t i = 0; i < array.size(); i++)
 	{
@@ -88,4 +91,11 @@ bool	utils::vector_contains(utils::t_str_arr &array, const std::string &element)
 			return (true);
 	}
 	return (false);
+}
+
+std::string utils::to_string(int value)
+{
+	std::stringstream ss;
+	ss << value;
+	return ss.str();
 }
