@@ -52,55 +52,47 @@ Server::~Server()
 	this->Stop();
 }
 
-void Server::Start()
+void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 {
-	FD_ZERO(&_currentFds);
-	FD_SET(_serverSocket, &_currentFds);
 
-	std::cout << _serverSocket << std::endl;
-	while (true)
+	if (FD_ISSET(_serverSocket, readfds))
 	{
-		_readFds = _writeFds = _currentFds;
-		memset(_buffer, 0, sizeof(_buffer));
+		_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
 
-		int activity = select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL);
-		if (activity < 0)
-			this->log("ERROR", "Failed to select");
+		// this->log("DEBUG", std::to_string(_clientSocket) + std::string(" is accepted"));
 
-		if (FD_ISSET(_serverSocket, &_readFds))
+		std::cout << _serverSocket << std::endl;
+		std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
+
+		if (_clientSocket < 0)
+			this->log("ERROR", "Failed to accept client");
+
+		if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) < 0)
+			this->log("ERROR", "Failed to set client socket flags");
+
+		FD_SET(_clientSocket, currentfds);
+		_clients.push_back(_clientSocket);
+	}
+
+	for (std::list<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		// this->log("DEBUG", this->to_string(*it) + std::string(" is set ") + this->to_string(FD_ISSET(*it, readfds)));
+
+		if (FD_ISSET(*it, readfds))
 		{
-			_clientSocket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
+			ssize_t readSize = recv(*it, _buffer, sizeof(_buffer), 0);
 
-			// this->log("DEBUG", std::to_string(_clientSocket) + std::string(" is accepted"));
+			this->LogRequest();
 
-			if (_clientSocket < 0)
-				this->log("ERROR", "Failed to accept client");
-
-			std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
-
-			if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) < 0)
-				this->log("ERROR", "Failed to set client socket flags");
-
-			FD_SET(_clientSocket, &_currentFds);
-			_clients.push_back(_clientSocket);
+			this->log("DEBUG", "readSize : " + this->to_string(readSize));
 		}
-
-		for (std::list<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		if (FD_ISSET(*it, writefds))
 		{
-			// this->log("DEBUG", std::to_string(*it) + std::string(" is set ") + std::to_string(FD_ISSET(*it, &_readFds)));
-
-			if (FD_ISSET(*it, &_readFds))
-			{
-				ssize_t readSize = recv(*it, _buffer, sizeof(_buffer), 0);
-
-				this->emit(std::string("reading"));
-
-				this->log("DEBUG", "readSize : " + this->to_string(readSize));
-
-				this->SendResponse(*it);
-
-				_clients.erase(it);
-			}
+			this->SendResponse(*it);
+			close(*it);
+			FD_CLR(*it, currentfds);
+			_clients.erase(it);
+			it = _clients.begin();
 		}
 	}
 }
@@ -116,7 +108,7 @@ Response Server::_getres()
 	Response res = Response();
 	Indexer indexer;
 
-	indexer.index(std::string("/nfs/homes/zlafou/42-cursus/WebServer"));
+	indexer.index(std::string("/root/LAB/WebServer"));
 
 	std::string body = indexer.getHtml();
 
@@ -151,14 +143,8 @@ void Server::LogResponse()
 
 void Server::SendResponse(int clientSocket)
 {
-	if (FD_ISSET(clientSocket, &_writeFds))
-	{
-		Response res = this->_getres();
-		res.send(clientSocket);
-	}
-
-	close(clientSocket);
-	FD_CLR(clientSocket, &_currentFds);
+	Response res = this->_getres();
+	res.send(clientSocket);
 }
 
 bool Server::endsWithCRLF(const char *buffer, size_t size)
@@ -166,4 +152,9 @@ bool Server::endsWithCRLF(const char *buffer, size_t size)
 	if (size < 2)
 		return (false);
 	return (buffer[size - 1] == '\n' && buffer[size - 2] == '\r');
+}
+
+int Server::getServerSocket() const
+{
+	return (_serverSocket);
 }

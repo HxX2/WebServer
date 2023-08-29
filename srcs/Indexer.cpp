@@ -53,7 +53,7 @@ void Indexer::setLinks(std::string filePath, std::string fileName)
 
 std::string Indexer::getHtml()
 {
-	_htmlFile.open("/nfs/homes/zlafou/42-cursus/WebServer/html/Indexer.html");
+	_htmlFile.open("/root/LAB/WebServer/html/Indexer.html");
 
 	if (_htmlFile.is_open())
 	{

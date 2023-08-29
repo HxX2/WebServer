@@ -11,25 +11,25 @@
 /* ************************************************************************** */
 
 #ifndef _LOGGER_HPP_
-# define _LOGGER_HPP_
+#define _LOGGER_HPP_
 
-# include <iostream>
-# include <string>
-# include <cstdlib>
+#include <iostream>
+#include <string>
+#include <cstdlib>
 
-# include "general.hpp"
+#include "general.hpp"
 
 class Logger
 {
 private:
-    bool _DEBUG;
+	bool _DEBUG;
 
 public:
-    Logger();
-    ~Logger();
+	Logger();
+	~Logger();
 
-    void setDebug(bool value);
-    void log(std::string type, std::string msg);
+	void setDebug(bool value);
+	static void log(std::string type, std::string msg);
 };
 
 #endif

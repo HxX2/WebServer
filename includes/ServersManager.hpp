@@ -26,6 +26,10 @@ private:
 	std::vector<Server *> _servers;
 	Config _config;
 
+	fd_set _currentFds;
+	fd_set _writeFds;
+	fd_set _readFds;
+
 public:
 	ServersManager();
 	~ServersManager();

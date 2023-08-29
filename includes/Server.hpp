@@ -38,10 +38,6 @@ private:
 	int _opt;
 	std::list<int> _clients;
 
-	fd_set _currentFds;
-	fd_set _writeFds;
-	fd_set _readFds;
-
 	Response _getres();
 
 public:
@@ -49,12 +45,13 @@ public:
 	Server(int port, std::string address);
 	~Server();
 
-	void Start();
+	void Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds);
 	bool Stop();
 	void LogRequest();
 	void LogResponse();
 	void SendResponse(int clientSocket);
 	bool endsWithCRLF(const char *buffer, size_t size);
+	int getServerSocket() const;
 
 	std::string to_string(int value) const
 	{
