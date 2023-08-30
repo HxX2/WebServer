@@ -34,7 +34,7 @@ void ServersManager::startServers()
 
 		int activity = select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL);
 		if (activity < 0)
-			Logger::log("ERROR", "Failed to select");
+			utils::log("ERROR", "Failed to select");
 		it = this->_servers.begin();
 		while (it != this->_servers.end())
 		{
