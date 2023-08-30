@@ -23,22 +23,15 @@
 #include <fcntl.h>
 #include <list>
 #include <string.h>
-#include <sstream>
+#include <Client.hpp>
 
-#include <Modules.hpp>
-#include <Response.hpp>
-
-class Server : public EventEmitter<Server>, public Logger
+class Server
 {
 private:
 	struct sockaddr_in _serverAddress;
 	int _serverSocket;
-	char _buffer[1024];
-	int _clientSocket;
 	int _opt;
-	std::list<int> _clients;
-
-	Response _getres();
+	std::list<Client> _clients;
 
 public:
 	Server();
@@ -46,19 +39,8 @@ public:
 	~Server();
 
 	void Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds);
-	bool Stop();
-	void LogRequest();
-	void LogResponse();
-	void SendResponse(int clientSocket);
-	bool endsWithCRLF(const char *buffer, size_t size);
 	int getServerSocket() const;
-
-	std::string to_string(int value) const
-	{
-		std::stringstream ss;
-		ss << value;
-		return ss.str();
-	}
+	bool Stop();
 };
 
 #endif

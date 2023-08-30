@@ -27,7 +27,7 @@ $(NAME): $(OBJS)
 	$(CC) $(OBJS) $(FLAGS) -o $(NAME)
 
 debug: $(OBJS)
-	$(CC) $(OBJS) $(FLAGS) -g3 -fsanitize=address -o $(NAME)
+	$(CC) $(OBJS) $(FLAGS) -D __DEBUG=true -g3 -fsanitize=address -o $(NAME)
 
 $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	$(CC) $(FLAGS) -c $< -o $@

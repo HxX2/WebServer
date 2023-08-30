@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <Modules.hpp>
+#include <Indexer.hpp>
 
 Indexer::Indexer()
 {
@@ -24,7 +24,7 @@ void Indexer::index(const std::string &path)
 {
 	_dir = opendir(path.c_str());
 	if (_dir == NULL)
-		this->log("ERROR", "Indexer : Cannot open directory");
+		utils::log("ERROR", "Indexer : Cannot open directory");
 	while ((_ent = readdir(_dir)) != NULL)
 	{
 		this->setLinks(path + std::string("/") + std::string(_ent->d_name), std::string(_ent->d_name));
@@ -36,7 +36,7 @@ void Indexer::setLinks(std::string filePath, std::string fileName)
 {
 	struct stat fileStat;
 	if (stat(filePath.c_str(), &fileStat) == -1)
-		this->log("ERROR", "Indexer : Cannot get file info");
+		utils::log("ERROR", "Indexer : Cannot get file info");
 	std::time_t ctime = fileStat.st_ctime;
 	std::tm *ptm = std::localtime(&ctime);
 	char ftime[32];
@@ -66,7 +66,7 @@ std::string Indexer::getHtml()
 		return (_html);
 	}
 	else
-		this->log("ERROR", "Indexer : Cannot open html file");
+		utils::log("ERROR", "Indexer : Cannot open html file");
 	return ("");
 }
 

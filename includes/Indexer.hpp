@@ -17,14 +17,13 @@
 #include <iostream>
 #include <fstream>
 #include <dirent.h>
-#include <Logger.hpp>
 #include <sys/stat.h>
 #include <ctime>
 #include <iomanip>
 #include <vector>
 #include <utils.hpp>
 
-class Indexer : public Logger
+class Indexer
 {
 private:
 	DIR *_dir;

@@ -99,3 +99,66 @@ std::string utils::to_string(int value)
 	ss << value;
 	return ss.str();
 }
+
+std::string utils::http_msg(std::string status)
+{
+	std::map<std::string, std::string> statusMessages;
+
+	statusMessages["100"] = "Continue";
+	statusMessages["101"] = "Switching Protocols";
+	statusMessages["200"] = "OK";
+	statusMessages["201"] = "Created";
+	statusMessages["202"] = "Accepted";
+	statusMessages["203"] = "Non-Authoritative Information";
+	statusMessages["204"] = "No Content";
+	statusMessages["205"] = "Reset Content";
+	statusMessages["206"] = "Partial Content";
+	statusMessages["300"] = "Multiple Choices";
+	statusMessages["301"] = "Moved Permanently";
+	statusMessages["302"] = "Found";
+	statusMessages["303"] = "See Other";
+	statusMessages["304"] = "Not Modified";
+	statusMessages["307"] = "Temporary Redirect";
+	statusMessages["308"] = "Permanent Redirect";
+	statusMessages["400"] = "Bad Request";
+	statusMessages["403"] = "Forbidden";
+	statusMessages["404"] = "Not Found";
+	statusMessages["405"] = "Method Not Allowed";
+	statusMessages["409"] = "Conflict";
+	statusMessages["411"] = "Length Required";
+	statusMessages["413"] = "Payload Too Large";
+	statusMessages["500"] = "Internal Server Error";
+	statusMessages["505"] = "HTTP Version Not Supported";
+
+	return (statusMessages[status]);
+}
+
+std::string utils::http_date()
+{
+	std::time_t t = std::time(0);
+	std::tm *now = std::gmtime(&t);
+
+	const char *format = "%a, %d %b %Y %H:%M:%S GMT";
+	char buffer[64];
+
+	std::strftime(buffer, sizeof(buffer), format, now);
+
+	return (std::string(buffer));
+}
+
+void utils::log(std::string type, std::string msg)
+{
+	if (type == "DEBUG")
+		std::cout << GREEN << "[" << type << "] " << RESET << msg << std::endl;
+	else if (__DEBUG && type == "ERROR")
+	{
+		std::cerr << RED << "[" << type << "] " << RESET << msg << std::endl;
+		if (__DEBUG)
+			perror("msg");
+		exit(1);
+	}
+	else if (type == "WARNING")
+		std::cerr << YELLOW << "[" << type << "] " << RESET << msg << std::endl;
+	else if (type == "INFO")
+		std::cout << MAGENTA << "[" << type << "] " << RESET << msg << std::endl;
+}
