@@ -6,10 +6,12 @@ Client::Client()
 
 Client::~Client()
 {
+	std::cout << "hmd" << std::endl;
 }
 
 Client::Client(int client_socket) : _client_socket(client_socket)
 {
+	_is_request_ready = false;
 }
 
 void Client::handle_request()
@@ -35,15 +37,17 @@ void Client::indexer_response(std::string path)
 
 void Client::send_response()
 {
-	this->_raw_response = this->_version + " " + this->_status + " " + utils::http_msg(_status) + "\r\n";
+	std::string raw_response;
+
+	raw_response = this->_version + " " + this->_status + " " + utils::http_msg(_status) + "\r\n";
 
 	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); ++it)
-		this->_raw_response += it->first + ": " + it->second + "\r\n";
+		raw_response += it->first + ": " + it->second + "\r\n";
 
-	this->_raw_response += "\r\n";
-	this->_raw_response += this->_body;
+	raw_response += "\r\n";
+	raw_response += this->_body;
 
-	::send(_client_socket, this->_raw_response.c_str(), this->_raw_response.length(), 0);
+	::send(_client_socket, raw_response.c_str(), raw_response.length(), 0);
 }
 
 void Client::log_response()

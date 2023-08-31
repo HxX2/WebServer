@@ -55,6 +55,7 @@ Server::~Server()
 void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 {
 	int client_socket;
+	(void)writefds;
 
 	if (FD_ISSET(_serverSocket, readfds))
 	{
@@ -72,26 +73,32 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 			utils::log("ERROR", "Failed to set client socket flags");
 
 		FD_SET(client_socket, currentfds);
-		_clients.push_back(Client(client_socket));
+		_clients.push_back(new Client(client_socket));
 	}
 
-	for (std::list<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	for (std::list<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		// utils::log("DEBUG", this->to_string(*it) + std::string(" is set ") + this->to_string(FD_ISSET(*it, readfds)));
+		char buffer[2048];
 
-		if (FD_ISSET(it->_client_socket, readfds))
+		if (FD_ISSET((*it)->_client_socket, readfds))
 		{
-			// ssize_t readSize = recv(*it, _buffer, sizeof(_buffer), 0);
+			size_t i = recv((*it)->_client_socket, buffer, sizeof(buffer), 0);
+			buffer[i] = '\0';
+
+			std::cout << buffer << std::endl;
 
 			// utils::logRequest();
 
 			// utils::log("DEBUG", "readSize : " + utils::to_string(readSize));
-		}
-		if (FD_ISSET(it->_client_socket, writefds))
-		{
-			it->send_response();
-			close(it->_client_socket);
-			FD_CLR(it->_client_socket, currentfds);
+			// }
+			// if (FD_ISSET((*it)->_client_socket, writefds))
+			// {
+			(*it)->indexer_response("/root/LAB/WebServer");
+			(*it)->send_response();
+			close((*it)->_client_socket);
+			FD_CLR((*it)->_client_socket, currentfds);
+			// delete *it;
 			_clients.erase(it);
 			it = _clients.begin();
 		}

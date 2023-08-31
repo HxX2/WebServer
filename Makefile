@@ -8,9 +8,8 @@ SRCS_DIR	= srcs
 SRCS		= Config.cpp \
 			  Config_Location.cpp \
 			  Config_Server.cpp \
-			  Logger.cpp \
 			  main.cpp \
-			  Request.cpp \
+			  Client.cpp \
 			  Response.cpp \
 			  Server.cpp \
 			  ServersManager.cpp \

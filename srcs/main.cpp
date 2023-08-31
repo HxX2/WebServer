@@ -2,12 +2,6 @@
 #include "Request.hpp"
 #include <ServersManager.hpp>
 
-void handle_request(size_t socket_fd, char *buffer, Config &server_config)
-{
-	Request req(socket_fd, buffer);
-	req.parseRequest(server_config);
-}
-
 int main(int argc, const char *argv[])
 {
 	Config cnf;
@@ -22,7 +16,6 @@ int main(int argc, const char *argv[])
 			cnf.read(argv[1]);
 			manager.loadConfig(cnf);
 			manager.startServers();
-			// mock_server(handle_request, cnf);
 		}
 		catch (const std::exception &e)
 		{

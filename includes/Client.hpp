@@ -27,11 +27,10 @@ private:
 	std::string _server_address;
 	std::string _server_name;
 	size_t _server_port;
-	std::string _raw_response;
 
 	std::map<std::string, std::string> _config_directives;
 
-	bool _is_request_ready = false;
+	bool _is_request_ready;
 
 public:
 	int _client_socket;

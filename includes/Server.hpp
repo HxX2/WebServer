@@ -25,13 +25,15 @@
 #include <string.h>
 #include <Client.hpp>
 
+class Client;
+
 class Server
 {
 private:
 	struct sockaddr_in _serverAddress;
 	int _serverSocket;
 	int _opt;
-	std::list<Client> _clients;
+	std::list<Client *> _clients;
 
 public:
 	Server();
