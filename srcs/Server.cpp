@@ -18,11 +18,11 @@ Server::Server() : _opt(1)
 
 Server::Server(int port, std::string address)
 {
-	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (_serverSocket < 0)
+	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (_server_socket < 0)
 		utils::log("ERROR", "Failed to create socket");
 
-	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(_server_socket, F_SETFL, O_NONBLOCK) < 0)
 		utils::log("ERROR", "Failed to set socket flags");
 
 	memset(&_serverAddress, 0, sizeof(_serverAddress));
@@ -30,15 +30,12 @@ Server::Server(int port, std::string address)
 	_serverAddress.sin_port = htons(port);
 	_serverAddress.sin_addr.s_addr = inet_addr(address.c_str());
 
-	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt));
+	setsockopt(_server_socket, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt));
 
-	if (bind(_serverSocket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
-	{
-		printf("port %d host %s \n", port, address.c_str());
+	if (bind(_server_socket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
 		utils::log("ERROR", "Failed to bind socket");
-	}
 
-	if (listen(_serverSocket, SOMAXCONN) < 0)
+	if (listen(_server_socket, SOMAXCONN) < 0)
 		utils::log("ERROR", "Failed to listen");
 
 	std::cout << YELLOW << "⚡ " << RESET << "Server listening on "
@@ -52,47 +49,44 @@ Server::~Server()
 	this->Stop();
 }
 
+int Server::getServerSocket() const
+{
+	return (_server_socket);
+}
+
 void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 {
 	int client_socket;
-	(void)writefds;
 
-	if (FD_ISSET(_serverSocket, readfds))
+	if (FD_ISSET(_server_socket, readfds))
 	{
-		client_socket = accept(_serverSocket, (struct sockaddr *)NULL, NULL);
-
-		// utils::log("DEBUG", std::to_string(client_socket) + std::string(" is accepted"));
-
-		std::cout << _serverSocket << std::endl;
-		std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
+		client_socket = accept(_server_socket, (struct sockaddr *)NULL, NULL);
 
 		if (client_socket < 0)
 			utils::log("ERROR", "Failed to accept client");
+
+		std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
 
 		if (fcntl(client_socket, F_SETFL, O_NONBLOCK) < 0)
 			utils::log("ERROR", "Failed to set client socket flags");
 
 		FD_SET(client_socket, currentfds);
-		_clients.push_back(new Client(client_socket));
+		_clients.push_back(new Client(client_socket, _server_socket));
 	}
 
+	char buffer[2048];
 	for (std::list<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		// utils::log("DEBUG", this->to_string(*it) + std::string(" is set ") + this->to_string(FD_ISSET(*it, readfds)));
-		char buffer[2048];
-
 		if (FD_ISSET((*it)->_client_socket, readfds))
 		{
-			std::cout << "reading" << std::endl;
 			size_t i = recv((*it)->_client_socket, buffer, sizeof(buffer), 0);
 			buffer[i] = '\0';
-
 			std::cout << buffer << std::endl;
 		}
 		sleep(1);
 		if (FD_ISSET((*it)->_client_socket, writefds))
 		{
-			(*it)->indexer_response("/root/LAB/WebServer");
+			(*it)->indexer_response("/home/cipher/Cursus/new_webserv");
 			(*it)->send_response();
 			close((*it)->_client_socket);
 			FD_CLR((*it)->_client_socket, currentfds);
@@ -106,10 +100,5 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 bool Server::Stop()
 {
 	std::cout << "Server stopped" << std::endl;
-	return (close(_serverSocket) == 0);
-}
-
-int Server::getServerSocket() const
-{
-	return (_serverSocket);
+	return (close(_server_socket) == 0);
 }

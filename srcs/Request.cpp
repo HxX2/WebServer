@@ -23,7 +23,6 @@ Request::Request(size_t socket_fd, char *buffer)
  */
 Request::~Request(void)
 {
-	// std::cout << "[Destructor]" << std::endl;
 }
 
 /**
@@ -38,7 +37,7 @@ Request::Request(const Request &req) { *this = req; }
  *
  * @param req the request to assign from
  */
-Request	&Request::operator=(const Request &req)
+Request &Request::operator=(const Request &req)
 {
 	(void)req;
 	return (*this);
@@ -50,7 +49,7 @@ Request	&Request::operator=(const Request &req)
  * @param line a reference to the string to put the line in
  * @return returns a boolean
  */
-bool	Request::_readline(std::string &line)
+bool Request::_readline(std::string &line)
 {
 	// TODO: handle CRLF+WS as a single line
 	size_t start_i = _stream.tellg();
@@ -72,10 +71,10 @@ bool	Request::_readline(std::string &line)
 	return (false);
 }
 
-void	Request::_setRequestLine(std::string &line)
+void Request::_setRequestLine(std::string &line)
 {
-	// TODO: handle errors -> empty line, line format "METHOD PATH VERSION", 
-	utils::t_str_arr	tokens;
+	// TODO: handle errors -> empty line, line format "METHOD PATH VERSION",
+	utils::t_str_arr tokens;
 
 	tokens = utils::split_str(line, ' ');
 	_method = tokens[0];
@@ -84,9 +83,9 @@ void	Request::_setRequestLine(std::string &line)
 	tokens.clear();
 }
 
-void	Request::_setHeader(std::string &line)
+void Request::_setHeader(std::string &line)
 {
-	utils::t_str_arr	header;
+	utils::t_str_arr header;
 
 	header = utils::split_str(line, ": ");
 	if (header.size() == 2)
@@ -95,29 +94,32 @@ void	Request::_setHeader(std::string &line)
 
 /**
  * parse the request buffer into the Request
- * 
+ *
  * @param	server_config a Config class instance containing the server config
  */
-void	Request::parseRequest(Config &server_config)
+void Request::parseRequest(Config &server_config)
 {
-	struct sockaddr_in	addr;
-	std::string			temp_line;
-	int					ret;
-	socklen_t			addr_len = sizeof(addr);
+	struct sockaddr_in addr;
+	std::string temp_line;
+	int ret;
+	socklen_t addr_len = sizeof(addr);
 
 	// Set Request address
 	ret = getsockname(_socket_fd, (struct sockaddr *)&addr, &addr_len);
-	if (!ret) _address = inet_ntoa(addr.sin_addr);
+	if (!ret)
+		_address = inet_ntoa(addr.sin_addr);
 
 	// Set Request line
 	while (_readline(temp_line))
-		if (!temp_line.empty()) break;
+		if (!temp_line.empty())
+			break;
 	_setRequestLine(temp_line);
 
 	// Set Request headers
 	while (_readline(temp_line))
 	{
-		if (temp_line.empty()) break;
+		if (temp_line.empty())
+			break;
 		_setHeader(temp_line);
 	}
 
@@ -143,16 +145,16 @@ void	Request::parseRequest(Config &server_config)
 /**
  * Check the parsed request for errors
  */
-void	Request::_checkRequest(void) {}
+void Request::_checkRequest(void) {}
 
 /**
  * Output stream insertion operator overload
- * 
+ *
  * @param	stream a reference to the an output stream
  * @param	request a Request class instance to output
  * @return	returns a reference to the given output stream for next insertions
  */
-std::ostream&	operator<<(std::ostream& stream, const Request& request)
+std::ostream &operator<<(std::ostream &stream, const Request &request)
 {
 	stream << "Request from: " << request.getAddress() << ", "
 		   << "on port: " << request.getPort() << ", "
@@ -162,17 +164,17 @@ std::ostream&	operator<<(std::ostream& stream, const Request& request)
 		   << "Path: [" + request.getPath() + "], "
 		   << "Version: [" + request.getVersion() + "]\n";
 
-	Request::string_map	headers = request.getHeaders();
-	Request::string_map::const_iterator	header_it = headers.begin();
+	Request::string_map headers = request.getHeaders();
+	Request::string_map::const_iterator header_it = headers.begin();
 	while (header_it != headers.end())
 	{
 		stream << "\t[" + header_it->first + "]: [" + header_it->second + "]\n";
 		header_it++;
 	}
-	
+
 	stream << "Config:\n";
-	Request::string_map	config = request.getConfig();
-	Request::string_map::const_iterator	config_it = config.begin();
+	Request::string_map config = request.getConfig();
+	Request::string_map::const_iterator config_it = config.begin();
 	while (config_it != config.end())
 	{
 		stream << "\t[" + config_it->first + "]: [" + config_it->second + "]\n";
@@ -180,7 +182,8 @@ std::ostream&	operator<<(std::ostream& stream, const Request& request)
 	}
 
 	if (request.getBody().size() > 0)
-		std::cout << "[Body]: \n" << request.getBody() << std::endl;
+		std::cout << "[Body]: \n"
+				  << request.getBody() << std::endl;
 
 	return (stream);
 }

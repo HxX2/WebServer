@@ -6,12 +6,19 @@ Client::Client()
 
 Client::~Client()
 {
-	std::cout << "hmd" << std::endl;
 }
 
-Client::Client(int client_socket) : _client_socket(client_socket)
+Client::Client(int client_fd, int server_fd)
 {
+	struct sockaddr_in addr;
+	int ret;
+	socklen_t addr_len = sizeof(addr);
+
 	_is_request_ready = false;
+	_client_socket = client_fd;
+	ret = getsockname(server_fd, (struct sockaddr *)&addr, &addr_len);
+	if (!ret)
+		_server_address = inet_ntoa(addr.sin_addr);
 }
 
 void Client::handle_request()

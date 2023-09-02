@@ -24,38 +24,28 @@ void ServersManager::startServers()
 
 	FD_ZERO(&_currentFds);
 	for (it = this->_servers.begin(); it != this->_servers.end(); ++it)
-	{
 		FD_SET((*it)->getServerSocket(), &_currentFds);
-	}
 
 	while (true)
 	{
 		_readFds = _writeFds = _currentFds;
 
-		int activity = select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL);
-		if (activity < 0)
+		if (select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL) < 0)
 			utils::log("ERROR", "Failed to select");
 		else
 		{
-
-			it = this->_servers.begin();
-			while (it != this->_servers.end())
-			{
+			for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 				(*it)->Start(&_readFds, &_writeFds, &_currentFds);
-				it++;
-			}
 		}
 	}
 }
 
 void ServersManager::stopServers()
 {
-	std::vector<Server *>::iterator it = this->_servers.begin();
-	while (it != this->_servers.end())
-	{
+	std::vector<Server *>::iterator it;
+
+	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->Stop();
-		it++;
-	}
 }
 
 void ServersManager::loadConfig(Config &config)
@@ -65,10 +55,6 @@ void ServersManager::loadConfig(Config &config)
 
 	this->_config = config;
 	sockets = _config.get_sockets();
-	it = sockets.begin();
-	while (it != sockets.end())
-	{
+	for (it = sockets.begin(); it != sockets.end(); it++)
 		this->addServer(new Server(it->port, it->address));
-		it++;
-	}
 }

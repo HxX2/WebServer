@@ -31,7 +31,7 @@ class Server
 {
 private:
 	struct sockaddr_in _serverAddress;
-	int _serverSocket;
+	int _server_socket;
 	int _opt;
 	std::list<Client *> _clients;
 
@@ -40,8 +40,8 @@ public:
 	Server(int port, std::string address);
 	~Server();
 
-	void Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds);
 	int getServerSocket() const;
+	void Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds);
 	bool Stop();
 };
 

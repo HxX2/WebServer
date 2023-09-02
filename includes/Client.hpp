@@ -36,7 +36,7 @@ public:
 	int _client_socket;
 
 	Client();
-	Client(int client_socket);
+	Client(int client_fd, int server_fd);
 	~Client();
 
 	void handle_request();
