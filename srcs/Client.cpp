@@ -27,6 +27,7 @@ void Client::indexer_response(std::string path)
 	Indexer indexer;
 
 	indexer.index(path);
+	this->_version = "HTTP/1.1";
 	this->_status = "200";
 	this->_body = indexer.getHtml();
 	this->_headers["Content-Type"] = "text/html";

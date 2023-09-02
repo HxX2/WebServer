@@ -10,7 +10,6 @@ SRCS		= Config.cpp \
 			  Config_Server.cpp \
 			  main.cpp \
 			  Client.cpp \
-			  Response.cpp \
 			  Server.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \

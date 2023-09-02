@@ -83,22 +83,20 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 
 		if (FD_ISSET((*it)->_client_socket, readfds))
 		{
+			std::cout << "reading" << std::endl;
 			size_t i = recv((*it)->_client_socket, buffer, sizeof(buffer), 0);
 			buffer[i] = '\0';
 
 			std::cout << buffer << std::endl;
-
-			// utils::logRequest();
-
-			// utils::log("DEBUG", "readSize : " + utils::to_string(readSize));
-			// }
-			// if (FD_ISSET((*it)->_client_socket, writefds))
-			// {
+		}
+		sleep(1);
+		if (FD_ISSET((*it)->_client_socket, writefds))
+		{
 			(*it)->indexer_response("/root/LAB/WebServer");
 			(*it)->send_response();
 			close((*it)->_client_socket);
 			FD_CLR((*it)->_client_socket, currentfds);
-			// delete *it;
+			delete *it;
 			_clients.erase(it);
 			it = _clients.begin();
 		}
