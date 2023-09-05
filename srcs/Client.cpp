@@ -31,12 +31,12 @@ void Client::handle_response()
 
 void Client::indexer_response(std::string path)
 {
-	Indexer indexer;
+	Templates templates;
 
-	indexer.index(path);
+	templates.index(path);
 	this->_version = "HTTP/1.1";
 	this->_status = "200";
-	this->_body = indexer.getHtml();
+	this->_body = templates.getIndexerPage();
 	this->_headers["Content-Type"] = "text/html";
 	this->_headers["Content-Length"] = utils::to_string(this->_body.length());
 	this->_headers["Date"] = utils::http_date();
@@ -56,6 +56,20 @@ void Client::send_response()
 	raw_response += this->_body;
 
 	::send(_client_socket, raw_response.c_str(), raw_response.length(), 0);
+}
+
+void Client::error_response(std::string status)
+{
+	std::string path = this->_config_directives["error_page_" + status];
+	Templates templates;
+
+	this->_version = "HTTP/1.1";
+	this->_status = status;
+	this->_body = templates.getErrorPage(status, path);
+	this->_headers["Content-Type"] = "text/html";
+	this->_headers["Content-Length"] = utils::to_string(this->_body.length());
+	this->_headers["Date"] = utils::http_date();
+	this->_headers["Server"] = "Webserv";
 }
 
 void Client::log_response()

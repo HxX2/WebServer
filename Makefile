@@ -13,7 +13,7 @@ SRCS		= Config.cpp \
 			  Server.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \
-			  Indexer.cpp \
+			  Templates.cpp \
 			  
 
 OBJ_DIR		= obj

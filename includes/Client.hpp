@@ -11,7 +11,7 @@
 #include <ctime>
 
 #include <Config.hpp>
-#include <Indexer.hpp>
+#include <Templates.hpp>
 #include <utils.hpp>
 
 class Client
@@ -44,6 +44,7 @@ public:
 	void indexer_response(std::string path);
 	void send_response();
 	void log_response();
+	void error_response(std::string status);
 };
 
 #endif

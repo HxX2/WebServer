@@ -65,6 +65,7 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 		if (client_socket < 0)
 			utils::log("ERROR", "Failed to accept client");
 
+		std::cout << _server_socket << std::endl;
 		std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
 
 		if (fcntl(client_socket, F_SETFL, O_NONBLOCK) < 0)
@@ -83,10 +84,10 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 			buffer[i] = '\0';
 			std::cout << buffer << std::endl;
 		}
-		sleep(1);
 		if (FD_ISSET((*it)->_client_socket, writefds))
 		{
-			(*it)->indexer_response("/home/cipher/Cursus/new_webserv");
+			(*it)->indexer_response(".");
+			// (*it)->error_response("403");
 			(*it)->send_response();
 			close((*it)->_client_socket);
 			FD_CLR((*it)->_client_socket, currentfds);

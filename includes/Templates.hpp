@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Indexer.hpp                                        :+:      :+:    :+:   */
+/*   Templates.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef _INDEXER_HPP_
-#define _INDEXER_HPP_
+#ifndef _Templates_HPP_
+#define _Templates_HPP_
 
 #include <string>
 #include <iostream>
@@ -23,7 +23,7 @@
 #include <vector>
 #include <utils.hpp>
 
-class Indexer
+class Templates
 {
 private:
 	DIR *_dir;
@@ -35,13 +35,13 @@ private:
 	std::string _html;
 
 public:
-	Indexer();
-	~Indexer();
+	Templates();
+	~Templates();
 
 	void index(const std::string &path);
 	void setLinks(std::string filePath, std::string fileName);
-	std::string getHtml();
-	void close();
+	std::string getIndexerPage();
+	std::string getErrorPage(std::string status, std::string path);
 };
 
 #endif
