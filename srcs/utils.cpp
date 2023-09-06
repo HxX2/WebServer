@@ -133,6 +133,78 @@ std::string utils::http_msg(std::string status)
 	return (statusMessages[status]);
 }
 
+std::string utils::mimetypes(std::string extension)
+{
+	std::map<std::string, std::string> mimeTypes;
+
+	mimeTypes["html"] = "text/html";
+	mimeTypes["htm"] = "text/html";
+	mimeTypes["shtml"] = "text/html";
+	mimeTypes["css"] = "text/css";
+	mimeTypes["xml"] = "text/xml";
+	mimeTypes["rss"] = "text/xml";
+	mimeTypes["gif"] = "image/gif";
+	mimeTypes["jpeg"] = "image/jpeg";
+	mimeTypes["jpg"] = "image/jpeg";
+	mimeTypes["js"] = "application/x-javascript";
+	mimeTypes["txt"] = "text/plain";
+	mimeTypes["htc"] = "text/x-component";
+	mimeTypes["mml"] = "text/mathml";
+	mimeTypes["png"] = "image/png";
+	mimeTypes["ico"] = "image/x-icon";
+	mimeTypes["jng"] = "image/x-jng";
+	mimeTypes["wbmp"] = "image/vnd.wap.wbmp";
+	mimeTypes["jar"] = "application/java-archive";
+	mimeTypes["war"] = "application/java-archive";
+	mimeTypes["ear"] = "application/java-archive";
+	mimeTypes["hqx"] = "application/mac-binhex40";
+	mimeTypes["pdf"] = "application/pdf";
+	mimeTypes["cco"] = "application/x-cocoa";
+	mimeTypes["jardiff"] = "application/x-java-archive-diff";
+	mimeTypes["jnlp"] = "application/x-java-jnlp-file";
+	mimeTypes["run"] = "application/x-makeself";
+	mimeTypes["pl"] = "application/x-perl";
+	mimeTypes["pm"] = "application/x-perl";
+	mimeTypes["prc"] = "application/x-pilot";
+	mimeTypes["pdb"] = "application/x-pilot";
+	mimeTypes["rar"] = "application/x-rar-compressed";
+	mimeTypes["rpm"] = "application/x-redhat-package-manager";
+	mimeTypes["sea"] = "application/x-sea";
+	mimeTypes["swf"] = "application/x-shockwave-flash";
+	mimeTypes["sit"] = "application/x-stuffit";
+	mimeTypes["tcl"] = "application/x-tcl";
+	mimeTypes["tk"] = "application/x-tcl";
+	mimeTypes["der"] = "application/x-x509-ca-cert";
+	mimeTypes["pem"] = "application/x-x509-ca-cert";
+	mimeTypes["crt"] = "application/x-x509-ca-cert";
+	mimeTypes["xpi"] = "application/x-xpinstall";
+	mimeTypes["zip"] = "application/zip";
+	mimeTypes["deb"] = "application/octet-stream";
+	mimeTypes["bin"] = "application/octet-stream";
+	mimeTypes["exe"] = "application/octet-stream";
+	mimeTypes["dll"] = "application/octet-stream";
+	mimeTypes["dmg"] = "application/octet-stream";
+	mimeTypes["eot"] = "application/octet-stream";
+	mimeTypes["iso"] = "application/octet-stream";
+	mimeTypes["img"] = "application/octet-stream";
+	mimeTypes["msi"] = "application/octet-stream";
+	mimeTypes["msp"] = "application/octet-stream";
+	mimeTypes["msm"] = "application/octet-stream";
+	mimeTypes["mp3"] = "audio/mpeg";
+	mimeTypes["ra"] = "audio/x-realaudio";
+	mimeTypes["mpeg"] = "video/mpeg";
+	mimeTypes["mpg"] = "video/mpeg";
+	mimeTypes["mov"] = "video/quicktime";
+	mimeTypes["flv"] = "video/x-flv";
+	mimeTypes["avi"] = "video/x-msvideo";
+	mimeTypes["wmv"] = "video/x-ms-wmv";
+	mimeTypes["asx"] = "video/x-ms-asf";
+	mimeTypes["asf"] = "video/x-ms-asf";
+	mimeTypes["mng"] = "video/x-mng";
+
+	return (mimeTypes[extension]);
+}
+
 std::string utils::http_date()
 {
 	std::time_t t = std::time(0);
