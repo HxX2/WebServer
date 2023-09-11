@@ -2,10 +2,6 @@
 
 #define BUFFER_SIZE 10000
 
-Client::Client()
-{
-}
-
 Client::~Client()
 {
 }
