@@ -78,15 +78,6 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 	{
 		if (FD_ISSET((*it)->_client_socket, readfds))
 		{
-			// int request_len;
-			// char buffer[10001];
-
-			// memset(buffer, 0, sizeof(buffer));
-			// request_len = recv((*it)->_client_socket, buffer, 10000, 0);
-			// if (request_len < 0)
-			// 	utils::log("ERROR", "failed to read request");
-			// std::cout << "\t\t" << request_len << std::endl;
-			// std::cout << buffer << std::endl;
 			(*it)->handle_request(_server_config);
 			if ((*it)->_is_request_ready)
 				(*it)->log_reuqest();
