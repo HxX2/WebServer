@@ -110,8 +110,7 @@ size_t Client::read_buffer(std::string &string_buffer)
 		utils::log("ERROR", "failed to read request");
 	else if (_is_first_read && request_len == 0)
 		utils::log("ERROR", "request cannot be empty");
-	// std::cout << strlen(buffer) << std::endl;
-	string_buffer.insert(0, buffer, request_len);
+	string_buffer.assign(buffer);
 	return (request_len);
 }
 
@@ -130,14 +129,11 @@ void Client::create_temp_file()
 void Client::handle_request(Config &server_config)
 {
 	std::string string_buffer, temp_line;
-	(void)server_config;
 
 	if (_is_request_ready)
 		return;
 
 	read_buffer(string_buffer);
-
-	// std::cout << string_buffer;
 
 	if (_is_first_read)
 	{
@@ -166,12 +162,15 @@ void Client::handle_request(Config &server_config)
 
 	_total_size_read += string_buffer.size();
 
-	temp_file << string_buffer;
-
 	if (_total_size_read > _content_length)
 		string_buffer.erase(_content_length);
 
+	temp_file << string_buffer;
+
 	_is_request_ready = (_total_size_read >= _content_length);
+
+	// if (_is_request_ready)
+	// 	log_reuqest();
 }
 
 void Client::log_reuqest()
