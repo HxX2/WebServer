@@ -77,11 +77,7 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 	for (std::list<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (FD_ISSET((*it)->_client_socket, readfds))
-		{
 			(*it)->handle_request(_server_config);
-			if ((*it)->_is_request_ready)
-				(*it)->log_reuqest();
-		}
 		if (FD_ISSET((*it)->_client_socket, writefds))
 		{
 			if ((*it)->_is_request_ready)
