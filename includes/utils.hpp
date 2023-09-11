@@ -27,6 +27,7 @@ namespace utils
 	void log(std::string type, std::string msg);
 	void time_now(std::string &nstr);
 	std::string mimetypes(std::string extension);
+	void time_now(std::string &nstr);
 };
 
 #endif
