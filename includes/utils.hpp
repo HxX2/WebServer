@@ -25,6 +25,7 @@ namespace utils
 	std::string http_msg(std::string status);
 	std::string http_date();
 	void log(std::string type, std::string msg);
+	void time_now(std::string &nstr);
 };
 
 #endif

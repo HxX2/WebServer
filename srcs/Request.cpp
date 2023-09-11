@@ -51,15 +51,12 @@ Request &Request::operator=(const Request &req)
  */
 bool Request::_readline(std::string &line)
 {
-	// TODO: handle CRLF+WS as a single line
 	size_t start_i = _stream.tellg();
 	size_t end_i;
 
 	if (_stream.peek() == -1)
 		return (false);
 	end_i = _stream.str().find("\r\n", start_i);
-	// while (end_i != std::string::npos && _stream.str().at(end_i + 2) == ' ')
-	// 	end_i = _stream.str().find("\r\n", start_i);
 	if (end_i != std::string::npos)
 	{
 		line = _stream.str().substr(start_i, end_i - start_i);
@@ -99,15 +96,7 @@ void Request::_setHeader(std::string &line)
  */
 void Request::parseRequest(Config &server_config)
 {
-	struct sockaddr_in addr;
 	std::string temp_line;
-	int ret;
-	socklen_t addr_len = sizeof(addr);
-
-	// Set Request address
-	ret = getsockname(_socket_fd, (struct sockaddr *)&addr, &addr_len);
-	if (!ret)
-		_address = inet_ntoa(addr.sin_addr);
 
 	// Set Request line
 	while (_readline(temp_line))
@@ -137,7 +126,7 @@ void Request::parseRequest(Config &server_config)
 	while (_readline(temp_line))
 		_body.append(temp_line);
 
-	_config = server_config.get_config(*this);
+	// _config = server_config.get_config(*this);
 
 	std::cout << *this << std::endl;
 }

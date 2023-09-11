@@ -2,7 +2,7 @@
 
 // ========== LocationBlock Class
 
-LocationBlock::LocationBlock(void): _path("") {}
+LocationBlock::LocationBlock(void) : _path("") {}
 
 LocationBlock::~LocationBlock(void) {}
 
@@ -41,6 +41,7 @@ const t_directives &LocationBlock::get_directives(void) const
 
 void LocationBlock::add_directive(std::string &line)
 {
+	// TODO: handle error_pages in server with inexistant location
 	t_directive directive;
 
 	directive.parse(line);
@@ -53,7 +54,7 @@ void LocationBlock::add_directive(std::string &line)
 std::ostream &operator<<(std::ostream &stream, const LocationBlock &location)
 {
 	t_directives::const_iterator it = location.get_directives().begin();
-	
+
 	stream << BLUE << "\tLocation: " << RESET << "\"" << location.get_path() << "\"" << std::endl;
 	while (it != location.get_directives().end())
 	{

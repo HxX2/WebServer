@@ -56,5 +56,5 @@ void ServersManager::loadConfig(Config &config)
 	this->_config = config;
 	sockets = _config.get_sockets();
 	for (it = sockets.begin(); it != sockets.end(); it++)
-		this->addServer(new Server(it->port, it->address));
+		this->addServer(new Server(_config, it->port, it->address));
 }

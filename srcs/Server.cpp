@@ -12,11 +12,11 @@
 
 #include <Server.hpp>
 
-Server::Server() : _opt(1)
-{
-}
+// Server::Server() : _opt(1)
+// {
+// }
 
-Server::Server(int port, std::string address)
+Server::Server(Config &server_config, int port, std::string address) : _server_config(server_config)
 {
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_server_socket < 0)
@@ -65,7 +65,6 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 		if (client_socket < 0)
 			utils::log("ERROR", "Failed to accept client");
 
-		std::cout << _server_socket << std::endl;
 		std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
 
 		if (fcntl(client_socket, F_SETFL, O_NONBLOCK) < 0)
@@ -75,25 +74,25 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 		_clients.push_back(new Client(client_socket, _server_socket));
 	}
 
-	char buffer[2048];
 	for (std::list<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (FD_ISSET((*it)->_client_socket, readfds))
-		{
-			size_t i = recv((*it)->_client_socket, buffer, sizeof(buffer), 0);
-			buffer[i] = '\0';
-			std::cout << buffer << std::endl;
-		}
+			(*it)->handle_request(_server_config);
 		if (FD_ISSET((*it)->_client_socket, writefds))
 		{
-			(*it)->indexer_response(".");
-			// (*it)->error_response("403");
-			(*it)->send_response();
-			close((*it)->_client_socket);
-			FD_CLR((*it)->_client_socket, currentfds);
-			delete *it;
-			_clients.erase(it);
-			it = _clients.begin();
+			if ((*it)->_is_request_ready)
+			{
+				// (*it)->indexer_response(".");
+				// (*it)->error_response("403");
+				// (*it)->send_response();
+				send((*it)->_client_socket, "HTTP/1.1 200 OK\r\n\r\nWell received\r\n", 33, 0);
+				close((*it)->_client_socket);
+				FD_CLR((*it)->_client_socket, currentfds);
+				(*it)->temp_file.close();
+				delete *it;
+				_clients.erase(it);
+				it = _clients.begin();
+			}
 		}
 	}
 }
