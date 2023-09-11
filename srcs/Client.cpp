@@ -168,9 +168,6 @@ void Client::handle_request(Config &server_config)
 	temp_file << string_buffer;
 
 	_is_request_ready = (_total_size_read >= _content_length);
-
-	// if (_is_request_ready)
-	// 	log_reuqest();
 }
 
 void Client::log_reuqest()
