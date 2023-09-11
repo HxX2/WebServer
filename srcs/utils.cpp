@@ -162,3 +162,14 @@ void utils::log(std::string type, std::string msg)
 	else if (type == "INFO")
 		std::cout << MAGENTA << "[" << type << "] " << RESET << msg << std::endl;
 }
+
+void utils::time_now(std::string &nstr)
+{
+	time_t now = std::time(0);
+
+	while (now > 0)
+	{
+		nstr.insert(0, 1, now % 10 + '0');
+		now /= 10;
+	}
+}
