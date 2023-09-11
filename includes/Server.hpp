@@ -34,10 +34,11 @@ private:
 	int _server_socket;
 	int _opt;
 	std::list<Client *> _clients;
+	Config &_server_config;
 
 public:
 	Server();
-	Server(int port, std::string address);
+	Server(Config &server_config, int port, std::string address);
 	~Server();
 
 	int getServerSocket() const;

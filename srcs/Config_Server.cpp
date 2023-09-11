@@ -2,7 +2,8 @@
 
 // ========== ServerBlock Class
 
-ServerBlock::ServerBlock(void) {
+ServerBlock::ServerBlock(void)
+{
 	_name = "";
 	_name = "127.0.0.1";
 	_port = 4000;
@@ -21,14 +22,14 @@ ServerBlock &ServerBlock::operator=(const ServerBlock &block)
 	return (*this);
 }
 
-bool	ServerBlock::is_address_valid(const std::string &address) const
+bool ServerBlock::is_address_valid(const std::string &address) const
 {
 	struct sockaddr_in sa;
 	int result = inet_pton(AF_INET, address.c_str(), &(sa.sin_addr));
 	return result;
 }
 
-bool	ServerBlock::is_port_valid(const size_t &port) const
+bool ServerBlock::is_port_valid(const size_t &port) const
 {
 	return (port > 0 && port <= 65535);
 }
@@ -50,12 +51,12 @@ void ServerBlock::add_location(LocationBlock *new_location)
 	_locations.push_back(new_location);
 }
 
-LocationBlock	*ServerBlock::get_location(size_t index) const
+LocationBlock *ServerBlock::get_location(size_t index) const
 {
 	return (_locations.at(index));
 }
 
-size_t	ServerBlock::size(void) const
+size_t ServerBlock::size(void) const
 {
 	return (_locations.size());
 }
@@ -63,6 +64,7 @@ size_t	ServerBlock::size(void) const
 void ServerBlock::set_params(std::string &line)
 {
 	t_directive directive;
+	// size_t separator_index;
 
 	directive.parse(line);
 	if (!directive.is_valid())
@@ -84,12 +86,24 @@ void ServerBlock::set_params(std::string &line)
 	}
 	else
 	{
+		// if (directive.key == "error_page" || directive.key == "cgi")
+		// {
+		// 	separator_index = directive.value.find(":");
+		// 	if (separator_index != std::string::npos)
+		// 	{
+		// 		directive.key.append("_" + directive.value.substr(0, separator_index));
+		// 		directive.value.erase(0, separator_index + 1);
+		// 	}
+		// 	// if (directive.key.compare(0, 12, "error_page_"))
+		// 	// 	if (!_error_pages.count(directive.key))
+		// 	// 		_error_pages[directive.key] = directive.value;
+		// }
 		for (size_t i = 0; i < _locations.size(); i++)
 			_locations[i]->add_directive(line);
 	}
 }
 
-bool	ServerBlock::is_match(const std::string &address, const size_t port) const
+bool ServerBlock::is_match(const std::string &address, const size_t port) const
 {
 	return (address == this->_address && port == this->_port);
 }
@@ -99,7 +113,7 @@ const utils::t_str_arr &ServerBlock::get_paths(void) const
 	return (_paths);
 }
 
-void	ServerBlock::add_path(std::string &line)
+void ServerBlock::add_path(std::string &line)
 {
 	size_t path_start, path_end;
 
@@ -108,12 +122,21 @@ void	ServerBlock::add_path(std::string &line)
 	_paths.push_back(line.substr(path_start + 1, path_end - path_start - 1));
 }
 
+const t_directives &ServerBlock::get_error_pages() const
+{
+	return (_error_pages);
+}
+
 std::ostream &operator<<(std::ostream &stream, const ServerBlock &server)
 {
 	stream << "NAME = " << server.get_name() << ", IP = " << server.get_address() << ", PORT = " << server.get_port() << std::endl;
 	stream << "PATHS:";
 	for (size_t i = 0; i < server.get_paths().size(); i++)
 		stream << (i == 0 ? " " : ", ") << server.get_paths()[i];
+	stream << std::endl;
+	stream << "ERROR_PAGES:";
+	for (t_directives::const_iterator i = server.get_error_pages().begin(); i != server.get_error_pages().end(); i++)
+		stream << "[" << i->first << "]: " << i->second;
 	stream << std::endl;
 	for (size_t j = 0; j < server.size(); j++)
 		stream << *(server.get_location(j));
