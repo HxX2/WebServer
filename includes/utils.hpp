@@ -28,6 +28,7 @@ namespace utils
 	void time_now(std::string &nstr);
 	std::string mimetypes(std::string extension);
 	void time_now(std::string &nstr);
+	std::string mimetypes(std::string extension);
 };
 
 #endif
