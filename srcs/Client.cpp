@@ -24,6 +24,8 @@ Client::Client(int client_fd, int server_fd)
 	send_body = false;
 	remove_client = false;
 	_client_socket = client_fd;
+	// should be removed
+	_status = "200";
 	ret = getsockname(server_fd, (struct sockaddr *)&addr, &addr_len);
 	if (!ret)
 		_server_address = inet_ntoa(addr.sin_addr);
@@ -210,15 +212,20 @@ void Client::log_reuqest()
 void Client::handle_response()
 {
 
+	if(_status != "200")
+		error_response(_status);
+	else if (_config_directives["redirect"] != "")
+		redirect_response();
+	else
+		regular_response();
+}
+
+void Client::regular_response()
+{
 	std::string path = _config_directives["root"] + _path;
 	std::string index = path + "/" + _config_directives["index"];
 	std::string extension = path.substr(path.find_last_of(".") + 1);
 	
-	utils::log("DEBUG", "file_path : \"" + path + "\"");
-	utils::log("DEBUG", "index_path: \"" + index + "\"");
-	utils::log("DEBUG", "url_path: \"" + _path + "\"");
-	utils::log("DEBUG", "config_root : \"" + _config_directives["root"] + "\"");
-
 	if (utils::is_dir(path))
 	{
 		utils::log("DEBUG", "autoindex : \"" + _config_directives["autoindex"] + "\"");
@@ -233,7 +240,16 @@ void Client::handle_response()
 	{
 		file_response(path, extension);
 	}
+}
 
+void Client::redirect_response()
+{
+	this->_version = "HTTP/1.1";
+	this->_status = "301";
+	this->_headers["Location"] = this->_config_directives["redirect"];
+	this->_headers["Content-Length"] = "0";
+	this->_headers["Date"] = utils::http_date();
+	this->_headers["Server"] = "Webserv";
 }
 
 void Client::indexer_response(const std::string &path,const std::string &location)
