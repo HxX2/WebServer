@@ -63,10 +63,12 @@ public:
 
 	void handle_response();
 	void indexer_response(const std::string &path,const std::string &location);
+	void redirect_response();
 	void send_response();
 	void log_response();
 	void error_response(std::string status);
 	void file_response(std::string path, std::string extension);
+	void regular_response();
 };
 
 #endif
