@@ -93,7 +93,7 @@ bool utils::vector_contains(utils::t_str_arr &array, const std::string &element)
 	return (false);
 }
 
-std::string utils::to_string(int value)
+std::string utils::to_string(long value)
 {
 	std::stringstream ss;
 	ss << value;
@@ -147,6 +147,7 @@ std::string utils::mimetypes(std::string extension)
 	mimeTypes["jpeg"] = "image/jpeg";
 	mimeTypes["jpg"] = "image/jpeg";
 	mimeTypes["js"] = "application/x-javascript";
+	mimeTypes["json"] = "application/json";
 	mimeTypes["txt"] = "text/plain";
 	mimeTypes["htc"] = "text/x-component";
 	mimeTypes["mml"] = "text/mathml";
@@ -244,4 +245,16 @@ void utils::time_now(std::string &nstr)
 		nstr.insert(0, 1, now % 10 + '0');
 		now /= 10;
 	}
+}
+
+bool utils::is_dir(std::string path)
+{
+	struct stat s;
+
+	if (stat(path.c_str(), &s) == 0)
+	{
+		if (s.st_mode & S_IFDIR)
+			return (true);
+	}
+	return (false);
 }

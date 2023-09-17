@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <general.hpp>
+#include <sys/stat.h>
 
 namespace utils
 {
@@ -21,13 +22,13 @@ namespace utils
 	size_t find_in(std::string &line, const char *chars, size_t pos, const char *error);
 	size_t not_find_in(std::string &line, const char *chars, size_t pos, const char *error);
 	bool vector_contains(t_str_arr &array, const std::string &element);
-	std::string to_string(int value);
+	std::string to_string(long value);
 	std::string http_msg(std::string status);
 	std::string http_date();
 	void log(std::string type, std::string msg);
 	std::string mimetypes(std::string extension);
 	void time_now(std::string &nstr);
-	std::string mimetypes(std::string extension);
+	bool is_dir(std::string path);
 };
 
 #endif

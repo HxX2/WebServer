@@ -25,6 +25,7 @@ private:
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 	std::string _status;
+	std::ifstream _res_file;
 
 	std::string _server_address;
 	std::string _server_name;
@@ -40,6 +41,8 @@ private:
 public:
 	std::fstream temp_file;
 	bool _is_request_ready;
+	bool remove_client;
+	bool send_body;
 	int _client_socket;
 
 	Client();
@@ -59,10 +62,11 @@ public:
 	void log_reuqest();
 
 	void handle_response();
-	void indexer_response(std::string path);
+	void indexer_response(const std::string &path,const std::string &location);
 	void send_response();
 	void log_response();
 	void error_response(std::string status);
+	void file_response(std::string path, std::string extension);
 };
 
 #endif
