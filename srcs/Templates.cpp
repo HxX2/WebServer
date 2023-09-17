@@ -21,8 +21,9 @@ Templates::~Templates()
 	_htmlFile.close();
 }
 
-void Templates::index(const std::string &path)
+void Templates::index(const std::string &path, const std::string &location)
 {
+	_location = location.find("/") != std::string::npos ? "" : location + "/";
 	_dir = opendir(path.c_str());
 	if (_dir == NULL)
 		utils::log("ERROR", "Indexer: Cannot open directory");
@@ -46,9 +47,9 @@ void Templates::setLinks(std::string filePath, std::string fileName)
 	if (fileName != "." && fileName != "..")
 	{
 		if (S_ISDIR(fileStat.st_mode))
-			_links += "<a href=\"" + fileName + "/\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + utils::to_string(fileStat.st_size / 1024) + " KB</span>";
+			_links += "<a href=\"" + _location + fileName + "/\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + utils::to_string(fileStat.st_size / 1024) + " KB</span>";
 		else
-			_links += "<a href=\"" + fileName + "\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + utils::to_string(fileStat.st_size / 1024) + " KB</span>";
+			_links += "<a href=\"" + _location + fileName + "\">" + fileName + "</a><p>" + std::string(ftime) + "</p><span>" + utils::to_string(fileStat.st_size / 1024) + " KB</span>";
 	}
 }
 
@@ -62,7 +63,7 @@ std::string Templates::getIndexerPage()
 		_html = std::string(_buffer.begin(), _buffer.end());
 
 		_html.replace(_html.find("{{links}}"), 9, _links);
-		_html.replace(_html.find("{{location}}"), 12, "/");
+		_html.replace(_html.find("{{location}}"), 12, _location);
 		return (_html);
 	}
 	else
