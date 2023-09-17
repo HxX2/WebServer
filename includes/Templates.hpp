@@ -33,12 +33,13 @@ private:
 	std::ifstream _htmlFile;
 	std::string _links;
 	std::string _html;
+	std::string _location;
 
 public:
 	Templates();
 	~Templates();
 
-	void index(const std::string &path);
+	void index(const std::string &path, const std::string &location);
 	void setLinks(std::string filePath, std::string fileName);
 	std::string getIndexerPage();
 	std::string getErrorPage(std::string status, std::string path);
