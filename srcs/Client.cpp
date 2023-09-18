@@ -12,6 +12,7 @@ Client::Client(int client_fd, int server_fd)
 	int ret;
 	socklen_t addr_len = sizeof(addr);
 
+	_chunk_size = 0;
 	_content_length = 0;
 	_total_size_read = 0;
 	_is_chunked = false;
@@ -27,20 +28,52 @@ Client::Client(int client_fd, int server_fd)
 		_server_address = inet_ntoa(addr.sin_addr);
 }
 
-bool extract_line(std::string &str, std::string &line)
+bool extract_line(std::string &buffer, std::string &line, bool include_CRLF = false)
 {
 	size_t end_i;
 
-	end_i = str.find("\r\n");
+	end_i = buffer.find("\r\n");
 	if (end_i != std::string::npos)
 	{
-		line = str.substr(0, end_i);
-		str.erase(0, end_i + 2);
+		line = buffer.substr(0, include_CRLF ? end_i + 2 : end_i);
+		buffer.erase(0, end_i + 2);
 		return (true);
 	}
-	line = str;
-	str = "";
+	line = buffer;
+	buffer = "";
 	return (false);
+}
+
+size_t extract_chunk(std::string &buffer, std::string &chunk, size_t chunk_size)
+{
+	if (chunk_size == 0)
+		return (0);
+	else if (chunk_size >= buffer.size())
+	{
+		chunk = buffer;
+		buffer = "";
+	}
+	else
+	{
+		chunk = buffer.substr(0, chunk_size);
+		buffer.erase(0, chunk_size);
+	}
+	return (chunk.size());
+}
+
+size_t Client::read_buffer(std::string &string_buffer)
+{
+	int request_len;
+	char buffer[BUFFER_SIZE + 1];
+
+	memset(buffer, 0, sizeof(buffer));
+	request_len = recv(_client_socket, buffer, BUFFER_SIZE, 0);
+	if (request_len < 0)
+		utils::log("ERROR", "failed to read request");
+	else if (_is_first_read && request_len == 0)
+		utils::log("ERROR", "request cannot be empty");
+	string_buffer.insert(0, buffer, request_len);
+	return (request_len);
 }
 
 void Client::set_request_line(std::string &line)
@@ -91,7 +124,7 @@ void Client::set_request_size()
 	// TODO: check for requests without Transfer-encoding & Content-Length header
 	// TODO: check if value isn't chunked
 	// TODO: check for 0 content_length
-	if (_headers.count("Transfer-encoding") > 0 && _headers["Transfer-encoding"] == "chunked")
+	if (_headers.count("Transfer-Encoding") > 0 && _headers["Transfer-Encoding"] == "chunked")
 		_is_chunked = true;
 	else if (_headers.count("Content-Length") > 0)
 		_content_length = atoi(_headers["Content-Length"].c_str());
@@ -102,37 +135,32 @@ void Client::set_config(Config &server_config)
 	_config_directives = server_config.get_config(_server_address, _server_port, _server_name, _path);
 }
 
-// TODO: handle sys calls failure
-size_t Client::read_buffer(std::string &string_buffer)
-{
-	int request_len;
-	char buffer[BUFFER_SIZE + 1];
-
-	memset(buffer, 0, sizeof(buffer));
-	request_len = recv(_client_socket, buffer, BUFFER_SIZE, 0);
-	if (request_len < 0)
-		utils::log("ERROR", "failed to read request");
-	else if (_is_first_read && request_len == 0)
-		utils::log("ERROR", "request cannot be empty");
-	string_buffer.insert(0, buffer, request_len);
-	return (request_len);
-}
-
 void Client::create_temp_file()
 {
-	std::string name = ".tmp";
-
-	utils::time_now(name);
-	temp_file.open(name.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
-	if (temp_file.fail())
-		utils::log("ERROR", "couldn't open temp file");
+	if (!_temp_file.is_open())
+	{
+		_temp_file_name = ".tmp";
+		utils::time_now(_temp_file_name);
+		_temp_file.open(_temp_file_name.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
+		if (_temp_file.fail())
+			utils::log("ERROR", "couldn't open temp file");
+	}
 }
 
-// TODO: check for empty request
-// TODO: handle chunked request
+void Client::close_temp_file(bool delete_file = true)
+{
+	_temp_file.close();
+	if (delete_file && ::remove(_temp_file_name.c_str()) != 0)
+		utils::log("ERROR", "Couldn't delete temp file");
+}
+
 void Client::handle_request(Config &server_config)
 {
+	size_t current_chunk_len = 0;
 	std::string string_buffer, temp_line;
+
+	// TODO: check for empty request
+	// TODO: handle chunked request
 
 	if (_is_request_ready)
 		return;
@@ -164,14 +192,45 @@ void Client::handle_request(Config &server_config)
 		_is_first_read = false;
 	}
 
-	_total_size_read += string_buffer.size();
-
-	if (_total_size_read > _content_length)
-		string_buffer.erase(_content_length);
-
-	temp_file << string_buffer;
-
-	_is_request_ready = (_total_size_read >= _content_length);
+	if (!_is_chunked)
+	{
+		_total_size_read += string_buffer.size();
+		if (_total_size_read > _content_length)
+			string_buffer.erase(_content_length);
+		_temp_file << string_buffer;
+		_is_request_ready = (_total_size_read >= _content_length);
+	}
+	else
+	{
+		while (!string_buffer.empty())
+		{
+			if (_chunk_size == 0)
+			{
+				extract_line(string_buffer, temp_line);
+				_chunk_size = utils::hex_to_decimal(temp_line);
+				std::cout << _chunk_size << std::endl;
+				if (_chunk_size == 0)
+				{
+					_is_request_ready = true;
+					break;
+				}
+			}
+			current_chunk_len = extract_chunk(string_buffer, temp_line, _chunk_size);
+			_chunk_size -= current_chunk_len;
+			_content_length += current_chunk_len;
+			_temp_file << temp_line;
+			if (_chunk_size == 0)
+			{
+				extract_line(string_buffer, temp_line);
+				if (!temp_line.empty())
+				{
+					_is_request_ready = true;
+					_status = "400";
+					break;
+				}
+			}
+		}
+	}
 }
 
 void Client::log_reuqest()
@@ -189,7 +248,7 @@ void Client::log_reuqest()
 	std::map<std::string, std::string>::iterator header_it = _headers.begin();
 	while (header_it != _headers.end())
 	{
-		std::cout << "\t[" + header_it->first + "]: [" + header_it->second + "]\n";
+		std::cout << "\t" + header_it->first + ": [" + header_it->second + "]\n";
 		header_it++;
 	}
 
@@ -197,18 +256,19 @@ void Client::log_reuqest()
 	std::map<std::string, std::string>::iterator config_it = _config_directives.begin();
 	while (config_it != _config_directives.end())
 	{
-		std::cout << "\t[" + config_it->first + "]: [" + config_it->second + "]\n";
+		std::cout << "\t" + config_it->first + ": [" + config_it->second + "]\n";
 		config_it++;
 	}
 
-	std::cout << "Body [" << _body.size() << "]:\n";
-	std::cout << "\t" << (_body.size() > 0 ? _body : "~~ Empty body ~~") << std::endl;
+	std::cout << "Body: \n"
+			  << "\t" << (_temp_file_name.empty() ? "[== No Body ==]" : "File name: [" + _temp_file_name + "]")
+			  << "\n";
 }
 
 void Client::handle_response()
 {
 
-	if(_status != "200")
+	if (_status != "200")
 		error_response(_status);
 	else if (_config_directives["redirect"] != "")
 		redirect_response();
@@ -221,7 +281,7 @@ void Client::regular_response()
 	std::string path = _config_directives["root"] + _path;
 	std::string index = path + "/" + _config_directives["index"];
 	std::string extension = path.substr(path.find_last_of(".") + 1);
-	
+
 	if (utils::is_dir(path))
 	{
 		utils::log("DEBUG", "autoindex : \"" + _config_directives["autoindex"] + "\"");
@@ -248,7 +308,7 @@ void Client::redirect_response()
 	this->_headers["Server"] = "Webserv";
 }
 
-void Client::indexer_response(const std::string &path,const std::string &location)
+void Client::indexer_response(const std::string &path, const std::string &location)
 {
 	Templates templates;
 
@@ -327,7 +387,6 @@ void Client::send_response()
 		remove_client = true;
 		log_response();
 	}
-
 }
 
 void Client::error_response(std::string status)
@@ -356,6 +415,6 @@ void Client::log_response()
 		_status = RED + _status;
 
 	std::cout << BLUE << "[RESPONSE] " << RESET << "(" << utils::http_date() << ")" << GREEN << " HTTP : " << RESET << this->_version
-			  <<  " " + _path + " " << this->_status << RESET << "\n"
+			  << " " + _path + " " << this->_status << RESET << "\n"
 			  << std::endl;
 }
