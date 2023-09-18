@@ -41,12 +41,21 @@ const t_directives &LocationBlock::get_directives(void) const
 
 void LocationBlock::add_directive(std::string &line)
 {
-	// TODO: handle error_pages in server with inexistant location
 	t_directive directive;
+	size_t separator_index;
 
 	directive.parse(line);
-	if (!directive.is_valid())
+	if (!directive.is_valid() || directive.key == "host" || directive.key == "port" || directive.key == "server_name")
 		throw std::invalid_argument("location in config contains invalid directive");
+	if (directive.key == "error_page" || directive.key == "cgi")
+	{
+		separator_index = directive.value.find(":");
+		if (separator_index != std::string::npos)
+		{
+			directive.key.append("_" + directive.value.substr(0, separator_index));
+			directive.value.erase(0, separator_index + 1);
+		}
+	}
 	if (!_directives.count(directive.key))
 		_directives[directive.key] = directive.value;
 }

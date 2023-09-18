@@ -64,12 +64,11 @@ size_t ServerBlock::size(void) const
 void ServerBlock::set_params(std::string &line)
 {
 	t_directive directive;
-	// size_t separator_index;
+	size_t separator_index;
 
 	directive.parse(line);
 	if (!directive.is_valid())
 		throw std::invalid_argument("server in config contains invalid directive");
-	// TODO: handle empty string ""
 	if (directive.key == "server_name")
 		set_name(directive.value);
 	else if (directive.key == "host")
@@ -86,18 +85,17 @@ void ServerBlock::set_params(std::string &line)
 	}
 	else
 	{
-		// if (directive.key == "error_page" || directive.key == "cgi")
-		// {
-		// 	separator_index = directive.value.find(":");
-		// 	if (separator_index != std::string::npos)
-		// 	{
-		// 		directive.key.append("_" + directive.value.substr(0, separator_index));
-		// 		directive.value.erase(0, separator_index + 1);
-		// 	}
-		// 	// if (directive.key.compare(0, 12, "error_page_"))
-		// 	// 	if (!_error_pages.count(directive.key))
-		// 	// 		_error_pages[directive.key] = directive.value;
-		// }
+		if (directive.key == "error_page")
+		{
+			separator_index = directive.value.find(":");
+			if (separator_index != std::string::npos)
+			{
+				directive.key.append("_" + directive.value.substr(0, separator_index));
+				directive.value.erase(0, separator_index + 1);
+			}
+			if (!_error_pages.count(directive.key))
+				_error_pages[directive.key] = directive.value;
+		}
 		for (size_t i = 0; i < _locations.size(); i++)
 			_locations[i]->add_directive(line);
 	}
@@ -134,9 +132,9 @@ std::ostream &operator<<(std::ostream &stream, const ServerBlock &server)
 	for (size_t i = 0; i < server.get_paths().size(); i++)
 		stream << (i == 0 ? " " : ", ") << server.get_paths()[i];
 	stream << std::endl;
-	stream << "ERROR_PAGES:";
+	stream << "ERROR_PAGES: " << server.get_error_pages().size() << "\n";
 	for (t_directives::const_iterator i = server.get_error_pages().begin(); i != server.get_error_pages().end(); i++)
-		stream << "[" << i->first << "]: " << i->second;
+		stream << "[" << i->first << "]: " << i->second << "\n";
 	stream << std::endl;
 	for (size_t j = 0; j < server.size(); j++)
 		stream << *(server.get_location(j));

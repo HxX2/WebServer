@@ -247,6 +247,16 @@ void utils::time_now(std::string &nstr)
 	}
 }
 
+unsigned long utils::hex_to_decimal(const std::string &hex)
+{
+	unsigned long dec;
+	std::stringstream ss;
+
+	ss << std::hex << hex;
+	ss >> dec;
+	return (dec);
+}
+
 bool utils::is_dir(std::string path)
 {
 	struct stat s;

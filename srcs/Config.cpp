@@ -127,20 +127,17 @@ Config::t_sockets Config::get_sockets()
 	return (result);
 }
 
-ssize_t compare(const std::string &request_path, const std::string &location_path)
+int compare(const std::string &request_path, const std::string &location_path)
 {
-	ssize_t similar_chars = 0;
-	size_t i;
+	size_t i = 0;
 
-	for (i = 0; i < request_path.size() && i < location_path.size(); i++)
-	{
-		if (request_path[i] != location_path[i])
-			return (-1);
-		similar_chars++;
-	}
+	while (i < request_path.size() && i < location_path.size() && request_path[i] == location_path[i])
+		i++;
 	if (
-		(request_path[i] == '\0' && location_path[i] == '\0') || (request_path[i] == '/' && request_path[i + 1] == '\0' && location_path[i] == '\0') || (request_path[i] == '\0' && location_path[i] == '/' && location_path[i + 1] == '\0'))
-		return (similar_chars);
+		(request_path[i] == '\0' && location_path[i] == '\0') ||
+		(request_path[i] == '/' && location_path[i] == '\0') ||
+		(request_path[i - 1] == '/' && location_path[i - 1] == '/' && location_path[i] == '\0'))
+		return (i);
 	return (-1);
 }
 
@@ -157,7 +154,6 @@ std::string get_directory(const std::string &path)
 	return std::string(path + (path[path.size() - 1] == '/' ? "" : "/"));
 }
 
-// t_directives Config::get_config(Client &client)
 t_directives Config::get_config(const std::string &server_address, size_t server_port, const std::string &server_name, const std::string &requested_path)
 {
 	ssize_t server_i = -1, max_similarity = -1, location_i = -1;
@@ -193,7 +189,7 @@ t_directives Config::get_config(const std::string &server_address, size_t server
 		}
 	}
 	if (location_i == -1)
-		return (std::map<std::string, std::string>());
+		return (_servers[server_i]->get_error_pages());
 	return (_servers[server_i]->get_location(location_i)->get_directives());
 }
 

@@ -29,6 +29,7 @@ namespace utils
 	void time_now(std::string &nstr);
 	std::string mimetypes(std::string extension);
 	void time_now(std::string &nstr);
+	unsigned long hex_to_decimal(const std::string &hex);
 	bool is_dir(std::string path);
 };
 
