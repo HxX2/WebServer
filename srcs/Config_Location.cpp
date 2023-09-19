@@ -2,7 +2,7 @@
 
 // ========== LocationBlock Class
 
-LocationBlock::LocationBlock(void): _path("") {}
+LocationBlock::LocationBlock(void) : _path("") {}
 
 LocationBlock::~LocationBlock(void) {}
 
@@ -42,10 +42,20 @@ const t_directives &LocationBlock::get_directives(void) const
 void LocationBlock::add_directive(std::string &line)
 {
 	t_directive directive;
+	size_t separator_index;
 
 	directive.parse(line);
-	if (!directive.is_valid())
+	if (!directive.is_valid() || directive.key == "host" || directive.key == "port" || directive.key == "server_name")
 		throw std::invalid_argument("location in config contains invalid directive");
+	if (directive.key == "error_page" || directive.key == "cgi")
+	{
+		separator_index = directive.value.find(":");
+		if (separator_index != std::string::npos)
+		{
+			directive.key.append("_" + directive.value.substr(0, separator_index));
+			directive.value.erase(0, separator_index + 1);
+		}
+	}
 	if (!_directives.count(directive.key))
 		_directives[directive.key] = directive.value;
 }
@@ -53,6 +63,8 @@ void LocationBlock::add_directive(std::string &line)
 std::ostream &operator<<(std::ostream &stream, const LocationBlock &location)
 {
 	t_directives::const_iterator it = location.get_directives().begin();
+
+	stream << BLUE << "\tLocation: " << RESET << "\"" << location.get_path() << "\"" << std::endl;
 	while (it != location.get_directives().end())
 	{
 		stream << YELLOW << "\t\tDirective [ " + it->first + " ]" << RESET << " => " << it->second << std::endl;
