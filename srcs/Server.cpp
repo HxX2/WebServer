@@ -12,10 +12,6 @@
 
 #include <Server.hpp>
 
-// Server::Server() : _opt(1)
-// {
-// }
-
 Server::Server(Config &server_config, int port, std::string address) : _server_config(server_config)
 {
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -78,15 +74,21 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 	{
 		if (FD_ISSET((*it)->_client_socket, readfds))
 		{
-			(*it)->handle_request(_server_config);
+			if (!(*it)->_is_request_ready)
+				(*it)->handle_request(_server_config);
 			if ((*it)->_is_request_ready)
-				(*it)->log_reuqest();
+			{
+				std::cout << "Status Code: " << (*it)->_status << std::endl;
+				if ((*it)->_status == "200")
+					(*it)->log_reuqest();
+			}
 		}
 		if (FD_ISSET((*it)->_client_socket, writefds))
 		{
 			if ((*it)->_is_request_ready)
 			{
-				send((*it)->_client_socket, "HTTP/1.1 200 OK\r\n\r\nWell received", 32, 0);
+				std::string res = "HTTP/1.1 " + (*it)->_status + " " + utils::http_msg((*it)->_status) + "\r\n\r\nResponse\r\n";
+				send((*it)->_client_socket, res.c_str(), res.size(), 0);
 				utils::log("INFO", "Client disconnected");
 				close((*it)->_client_socket);
 				FD_CLR((*it)->_client_socket, currentfds);

@@ -16,6 +16,8 @@
 #include <Templates.hpp>
 #include <utils.hpp>
 
+#define BUFFER_SIZE 10000
+
 class Client
 {
 private:
@@ -24,7 +26,6 @@ private:
 	std::string _version;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
-	std::string _status;
 	std::ifstream _res_file;
 
 	std::string _server_address;
@@ -47,24 +48,26 @@ public:
 	bool _is_request_ready;
 	bool remove_client;
 	bool send_body;
+	std::string _status;
 	int _client_socket;
 
 	Client();
 	Client(int client_fd, int server_fd);
 	~Client();
 
-	const std::string &get_body() const { return (_body); }
-
 	void handle_request(Config &server_config);
 	size_t read_buffer(std::string &string_buffer);
-	void set_request_line(std::string &line);
-	void set_header(std::string &line);
-	void set_host_info();
-	void set_request_size();
-	void set_config(Config &server_config);
-	void log_reuqest();
+	bool set_request_line(std::string &line);
+	bool set_header(std::string &line);
+	bool set_host_info();
+	bool set_request_size();
+	bool set_config(Config &server_config);
 	void create_temp_file();
 	void close_temp_file(bool delete_file);
+	bool is_path_valid(std::string &path);
+	bool is_allowed_method(std::string &method);
+	bool handle_error(std::string status_code);
+	void log_reuqest();
 
 	void handle_response();
 	void indexer_response(const std::string &path, const std::string &location);

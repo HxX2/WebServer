@@ -175,7 +175,7 @@ public:
 	bool is_block_head(std::string &line) const;
 	void parse(parse_params &params);
 	t_sockets get_sockets();
-	t_directives get_config(const std::string &server_address, size_t server_port, const std::string &server_name, const std::string &requested_path);
+	t_directives get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path);
 };
 
 std::ostream &operator<<(std::ostream &stream, const LocationBlock &location);

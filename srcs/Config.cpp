@@ -154,7 +154,7 @@ std::string get_directory(const std::string &path)
 	return std::string(path + (path[path.size() - 1] == '/' ? "" : "/"));
 }
 
-t_directives Config::get_config(const std::string &server_address, size_t server_port, const std::string &server_name, const std::string &requested_path)
+t_directives Config::get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path)
 {
 	ssize_t server_i = -1, max_similarity = -1, location_i = -1;
 	utils::t_str_arr entries;
@@ -190,6 +190,12 @@ t_directives Config::get_config(const std::string &server_address, size_t server
 	}
 	if (location_i == -1)
 		return (_servers[server_i]->get_error_pages());
+	else
+	{
+		requested_path.erase(0, _servers[server_i]->get_location(location_i)->get_path().size());
+		if (requested_path.empty())
+			requested_path = "/";
+	}
 	return (_servers[server_i]->get_location(location_i)->get_directives());
 }
 
