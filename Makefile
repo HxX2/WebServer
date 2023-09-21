@@ -15,6 +15,8 @@ SRCS		= Config.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \
 			  Templates.cpp \
+			  Request.cpp \
+			  Response.cpp
 			  CGI.cpp \
 			  Server.cpp
 
