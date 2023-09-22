@@ -23,7 +23,7 @@ Templates::~Templates()
 
 void Templates::index(const std::string &path, const std::string &location)
 {
-	_location = location.find("/") != std::string::npos ? "" : location + "/";
+	_location = location[location.length() - 1] == '/' ? location : location + "/";
 	_dir = opendir(path.c_str());
 	if (_dir == NULL)
 		utils::log("ERROR", "Indexer: Cannot open directory");

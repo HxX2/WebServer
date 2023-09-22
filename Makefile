@@ -15,6 +15,7 @@ SRCS		= Config.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \
 			  Templates.cpp \
+			  CGI.cpp \
 			  Server.cpp
 
 OBJ_DIR		= obj

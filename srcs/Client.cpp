@@ -16,6 +16,9 @@ Client::Client(int client_fd, int server_fd)
 	send_body = false;
 	remove_client = false;
 	_client_socket = client_fd;
+	_cgi = NULL;
+	// should be removed
+	_status = "200";
 	ret = getsockname(server_fd, (struct sockaddr *)&addr, &addr_len);
 	if (!ret)
 	{
