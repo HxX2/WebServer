@@ -15,6 +15,7 @@
 #include <Config.hpp>
 #include <Templates.hpp>
 #include <utils.hpp>
+#include <CGI.hpp>
 
 class Client
 {
@@ -26,6 +27,8 @@ private:
 	std::string _body;
 	std::string _status;
 	std::ifstream _res_file;
+	CGI *_cgi;
+	int _pipe[2];
 
 	std::string _server_address;
 	std::string _server_name;
@@ -74,6 +77,11 @@ public:
 	void error_response(std::string status);
 	void file_response(std::string path, std::string extension);
 	void regular_response();
+	std::string get_index(std::string path);
+	void create_cgi_file();
+	void cgi_response();
+	void exec_cgi();
+	int wait_cgi();
 };
 
 #endif

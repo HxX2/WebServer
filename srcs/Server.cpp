@@ -86,14 +86,21 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 		{
 			if ((*it)->_is_request_ready)
 			{
-				send((*it)->_client_socket, "HTTP/1.1 200 OK\r\n\r\nWell received", 32, 0);
-				utils::log("INFO", "Client disconnected");
-				close((*it)->_client_socket);
-				FD_CLR((*it)->_client_socket, currentfds);
-				(*it)->close_temp_file(false);
-				delete *it;
-				_clients.erase(it);
-				it = _clients.begin();
+				// send((*it)->_client_socket, "HTTP/1.1 200 OK\r\n\r\nWell received", 32, 0);
+
+				if (!(*it)->send_body)
+					(*it)->handle_response();
+				(*it)->send_response();
+				if ((*it)->remove_client)
+				{
+					utils::log("INFO", "Client disconnected");
+					close((*it)->_client_socket);
+					FD_CLR((*it)->_client_socket, currentfds);
+					(*it)->close_temp_file(true);
+					delete *it;
+					_clients.erase(it);
+					it = _clients.begin();
+				}
 			}
 		}
 	}

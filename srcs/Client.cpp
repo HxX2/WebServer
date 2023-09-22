@@ -21,6 +21,7 @@ Client::Client(int client_fd, int server_fd)
 	send_body = false;
 	remove_client = false;
 	_client_socket = client_fd;
+	_cgi = NULL;
 	// should be removed
 	_status = "200";
 	ret = getsockname(server_fd, (struct sockaddr *)&addr, &addr_len);
@@ -267,8 +268,7 @@ void Client::log_reuqest()
 
 void Client::handle_response()
 {
-
-	if (_status != "200")
+	if(_status != "200")
 		error_response(_status);
 	else if (_config_directives["redirect"] != "")
 		redirect_response();
@@ -276,17 +276,36 @@ void Client::handle_response()
 		regular_response();
 }
 
+std::string Client::get_index(std::string path)
+{
+	utils::t_str_arr indexes = utils::split_str(_config_directives["index"], ' ');
+
+	for (utils::t_str_arr::iterator it = indexes.begin(); it != indexes.end(); ++it)
+	{
+		std::string index = path + "/" + *it;
+		if (access(index.c_str(), F_OK) != -1 && !utils::is_dir(index))
+			return (index);
+	}
+	return ("");
+}
+
 void Client::regular_response()
 {
-	std::string path = _config_directives["root"] + _path;
-	std::string index = path + "/" + _config_directives["index"];
+	std::string path = _config_directives["root"] + _path.substr(0, _path.find_last_of("?"));
+	std::string index = get_index(path);
 	std::string extension = path.substr(path.find_last_of(".") + 1);
 
 	if (utils::is_dir(path))
 	{
 		utils::log("DEBUG", "autoindex : \"" + _config_directives["autoindex"] + "\"");
-		if (access(index.c_str(), F_OK) != -1 && _config_directives["index"] != "")
-			file_response(index, index.substr(index.find_last_of(".") + 1));
+		if (index != "")
+		{
+			utils::log("DEBUG", "index : \"" + index + "\"");
+			if (_config_directives["cgi_" + index.substr(path.find_last_of(".") + 1)] != "")
+				cgi_response();
+			else
+				file_response(index, index.substr(index.find_last_of(".") + 1));
+		}
 		else if (_config_directives["autoindex"] == "true")
 			indexer_response(path, _path);
 		else
@@ -294,7 +313,10 @@ void Client::regular_response()
 	}
 	else
 	{
-		file_response(path, extension);
+		if (_config_directives["cgi_" + extension] != "")
+			cgi_response();
+		else
+			file_response(path, extension);
 	}
 }
 
@@ -358,8 +380,27 @@ void Client::send_response()
 {
 	std::string raw_response;
 	char buffer[BUFFER_SIZE];
+	// int status;
+	size_t ret;
 
-	if (!send_body)
+	if (_cgi != NULL && _status == "200")
+	{
+		// status = wait_cgi();
+
+		ret = read(_pipe[0], buffer, BUFFER_SIZE);
+		buffer[ret] = '\0';
+		utils::log("DEBUG", "buffer : \"" + std::string(buffer) + "\"");
+		utils::log("DEBUG", "ret : \"" + utils::to_string(ret) + "\"");
+		send(_client_socket, buffer, ret, 0);
+		if (!ret)
+		{
+			close(_pipe[0]);
+			remove_client = true;
+			log_response();
+		}
+		send_body = true;
+	}
+	else if (!send_body)
 	{
 		raw_response = this->_version + " " + this->_status + " " + utils::http_msg(_status) + "\r\n";
 
@@ -401,6 +442,66 @@ void Client::error_response(std::string status)
 	this->_headers["Content-Length"] = utils::to_string(this->_body.length());
 	this->_headers["Date"] = utils::http_date();
 	this->_headers["Server"] = "Webserv";
+}
+
+void Client::cgi_response()
+{
+	_cgi = new CGI(_server_name, utils::to_string(_server_port), _path);
+	_cgi->file_path = _config_directives["root"] + _path;
+	_cgi->extension = _path.substr(_path.find_last_of(".") + 1);
+	_cgi->path = _config_directives["cgi_" + _cgi->extension];
+
+	_cgi->set_path_info(_cgi->extension);
+	_cgi->set_meta_variables(_headers, _method, _version);
+
+	// utils::log("DEBUG", "cgi_path : \"" + _cgi->path + "\"");
+	// utils::log("DEBUG", "extension : \"" + _cgi->extension + "\"");
+	exec_cgi();
+	// wait_cgi();
+}
+
+void Client::exec_cgi()
+{
+	pipe(_pipe);
+	_cgi->pid = fork();
+	if(_cgi->pid == 0)
+	{
+		char **envp = _cgi->get_envp();
+		char *argv[] = {
+			const_cast<char *>(_cgi->path.c_str()),
+			const_cast<char *>(_cgi->file_path.c_str()),
+			NULL
+		};
+
+		int fd = open(_temp_file_name.c_str(), O_RDONLY);
+		dup2(fd, 0);
+		close(fd);
+		close(_pipe[0]);
+		dup2(_pipe[1], 1);
+		close(_pipe[1]);
+		execve(_cgi->path.c_str(), argv, envp);
+		_cgi->delete_envp(envp);
+		exit(1);
+	}
+	else
+		close(_pipe[1]);
+}
+
+int Client::wait_cgi()
+{
+	int status = 0;
+
+	if (!waitpid(_cgi->pid, &status, WNOHANG))
+		return 0;
+	else
+		return 1;
+
+	if (WEXITSTATUS(status) > 0)
+	{
+		utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
+		error_response("500");
+	}
+
 }
 
 void Client::log_response()

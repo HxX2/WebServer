@@ -12,6 +12,7 @@
 README.md
 .DS_Store
 .nfs*
+locations/**/*
 
 # make
 a.out
