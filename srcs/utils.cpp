@@ -133,7 +133,7 @@ std::string utils::http_msg(std::string status)
 	return (statusMessages[status]);
 }
 
-std::string utils::mimetypes(std::string extension)
+std::string utils::mimetypes(std::string value , bool reverse)
 {
 	std::map<std::string, std::string> mimeTypes;
 
@@ -203,7 +203,17 @@ std::string utils::mimetypes(std::string extension)
 	mimeTypes["asf"] = "video/x-ms-asf";
 	mimeTypes["mng"] = "video/x-mng";
 
-	return (mimeTypes[extension]);
+	if (reverse)
+	{
+		for (std::map<std::string, std::string>::iterator it = mimeTypes.begin(); it != mimeTypes.end(); it++)
+		{
+			if (it->second == value)
+				return ("." + it->first);
+		}
+		return ("");
+	}
+	else
+		return (mimeTypes[value]);
 }
 
 std::string utils::http_date()

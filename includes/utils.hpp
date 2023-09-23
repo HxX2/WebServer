@@ -27,7 +27,7 @@ namespace utils
 	std::string http_date();
 	void log(std::string type, std::string msg);
 	void time_now(std::string &nstr);
-	std::string mimetypes(std::string extension);
+	std::string mimetypes(std::string value, bool reverse);
 	void time_now(std::string &nstr);
 	unsigned long hex_to_decimal(const std::string &hex);
 	bool is_dir(std::string path);

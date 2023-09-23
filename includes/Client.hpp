@@ -75,6 +75,8 @@ public:
 	void send_response();
 	void log_response();
 	void error_response(std::string status);
+	void delete_response(std::string file_name);
+	void post_response();
 	void file_response(std::string path, std::string extension);
 	void regular_response();
 	std::string get_index(std::string path);

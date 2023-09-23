@@ -272,6 +272,8 @@ void Client::handle_response()
 		error_response(_status);
 	else if (_config_directives["redirect"] != "")
 		redirect_response();
+	else if (_method == "POST")
+		post_response();
 	else
 		regular_response();
 }
@@ -313,7 +315,9 @@ void Client::regular_response()
 	}
 	else
 	{
-		if (_config_directives["cgi_" + extension] != "")
+		if(_method == "DELETE")
+			delete_response(path);
+		else if (_config_directives["cgi_" + extension] != "")
 			cgi_response();
 		else
 			file_response(path, extension);
@@ -347,7 +351,7 @@ void Client::indexer_response(const std::string &path, const std::string &locati
 void Client::file_response(std::string path, std::string extension)
 {
 	_res_file.open(path.c_str(), std::fstream::in | std::fstream::binary);
-	std::string mime_type = utils::mimetypes(extension);
+	std::string mime_type = utils::mimetypes(extension, false);
 
 	if (!_res_file.good())
 	{
@@ -440,6 +444,39 @@ void Client::error_response(std::string status)
 	this->_body = templates.getErrorPage(status, path);
 	this->_headers["Content-Type"] = "text/html";
 	this->_headers["Content-Length"] = utils::to_string(this->_body.length());
+	this->_headers["Date"] = utils::http_date();
+	this->_headers["Server"] = "Webserv";
+}
+
+void Client::delete_response(std::string file_name)
+{
+	if (access(file_name.c_str(), W_OK))
+		unlink(file_name.c_str());
+
+	this->_version = "HTTP/1.1";
+	this->_status = "204";
+	this->_body = "";
+	this->_headers["Date"] = utils::http_date();
+	this->_headers["Server"] = "Webserv";
+}
+
+void Client::post_response()
+{
+	std::string upload_dir = _config_directives["upload_dir"];
+	std::string file_name;
+
+	if (utils::is_dir (upload_dir) && access (upload_dir.c_str(), W_OK))
+	{
+		close_temp_file(true);
+		error_response("500");
+		return ;
+	}
+	file_name = upload_dir + _temp_file_name.substr(_temp_file_name.find_last_of(".")) + utils::mimetypes(_headers["Content-Type"], true);
+	rename(_temp_file_name.c_str(), file_name.c_str());
+
+	this->_version = "HTTP/1.1";
+	this->_status = "201";
+	this->_body = "";
 	this->_headers["Date"] = utils::http_date();
 	this->_headers["Server"] = "Webserv";
 }
