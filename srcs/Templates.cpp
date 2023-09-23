@@ -73,7 +73,7 @@ std::string Templates::getIndexerPage()
 
 std::string Templates::getErrorPage(std::string status, std::string path)
 {
-	path == "" ? _htmlFile.open("./templates/Error.html") : _htmlFile.open(path.c_str());
+	path == "" || access(path.c_str(), F_OK) == -1 ? _htmlFile.open("./templates/Error.html") : _htmlFile.open(path.c_str());
 	std::string http_msg = utils::http_msg(status);
 
 	if (_htmlFile.is_open())
@@ -81,7 +81,7 @@ std::string Templates::getErrorPage(std::string status, std::string path)
 		_buffer.assign(std::istreambuf_iterator<char>(_htmlFile), std::istreambuf_iterator<char>());
 		_html = std::string(_buffer.begin(), _buffer.end());
 
-		if (path == "")
+		if (path == "" || access(path.c_str(), F_OK) == -1)
 		{
 			_html.replace(_html.find("{{status}}"), 10, status);
 			_html.replace(_html.find("{{http_msg}}"), 12, http_msg);

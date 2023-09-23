@@ -180,13 +180,13 @@ std::string utils::mimetypes(std::string value , bool reverse)
 	mimeTypes["crt"] = "application/x-x509-ca-cert";
 	mimeTypes["xpi"] = "application/x-xpinstall";
 	mimeTypes["zip"] = "application/zip";
+	mimeTypes["iso"] = "application/octet-stream";
 	mimeTypes["deb"] = "application/octet-stream";
 	mimeTypes["bin"] = "application/octet-stream";
 	mimeTypes["exe"] = "application/octet-stream";
 	mimeTypes["dll"] = "application/octet-stream";
 	mimeTypes["dmg"] = "application/octet-stream";
 	mimeTypes["eot"] = "application/octet-stream";
-	mimeTypes["iso"] = "application/octet-stream";
 	mimeTypes["img"] = "application/octet-stream";
 	mimeTypes["msi"] = "application/octet-stream";
 	mimeTypes["msp"] = "application/octet-stream";
