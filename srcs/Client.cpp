@@ -380,19 +380,19 @@ void Client::send_response()
 {
 	std::string raw_response;
 	char buffer[BUFFER_SIZE];
-	// int status;
+	int status;
 	size_t ret;
 
 	if (_cgi != NULL && _status == "200")
 	{
-		// status = wait_cgi();
+		status = wait_cgi();
 
 		ret = read(_pipe[0], buffer, BUFFER_SIZE);
 		buffer[ret] = '\0';
 		utils::log("DEBUG", "buffer : \"" + std::string(buffer) + "\"");
 		utils::log("DEBUG", "ret : \"" + utils::to_string(ret) + "\"");
 		send(_client_socket, buffer, ret, 0);
-		if (!ret)
+		if (!ret && status)
 		{
 			close(_pipe[0]);
 			remove_client = true;
