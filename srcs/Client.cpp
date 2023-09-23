@@ -450,8 +450,14 @@ void Client::error_response(std::string status)
 
 void Client::delete_response(std::string file_name)
 {
-	if (access(file_name.c_str(), W_OK))
-		unlink(file_name.c_str());
+	std::cout << "file_name : " << file_name << std::endl;
+	if (!access(file_name.c_str(), W_OK))
+		remove(file_name.c_str());
+	else
+	{
+		error_response("500");
+		return ;
+	}
 
 	this->_version = "HTTP/1.1";
 	this->_status = "204";
@@ -471,7 +477,7 @@ void Client::post_response()
 		error_response("500");
 		return ;
 	}
-	file_name = upload_dir + _temp_file_name.substr(_temp_file_name.find_last_of(".")) + utils::mimetypes(_headers["Content-Type"], true);
+	file_name = upload_dir + _temp_file_name.substr(0 , _temp_file_name.find_last_of(".")) + utils::mimetypes(_headers["Content-Type"], true);
 	rename(_temp_file_name.c_str(), file_name.c_str());
 
 	this->_version = "HTTP/1.1";
@@ -494,7 +500,7 @@ void Client::cgi_response()
 	// utils::log("DEBUG", "cgi_path : \"" + _cgi->path + "\"");
 	// utils::log("DEBUG", "extension : \"" + _cgi->extension + "\"");
 	exec_cgi();
-	// wait_cgi();
+	wait_cgi();
 }
 
 void Client::exec_cgi()
