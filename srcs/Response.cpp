@@ -19,8 +19,14 @@ std::string Client::get_index(std::string path)
 	for (utils::t_str_arr::iterator it = indexes.begin(); it != indexes.end(); ++it)
 	{
 		std::string index = path + "/" + *it;
+		std::string index_ext = index.substr(index.find_last_of(".") + 1);
 		if (access(index.c_str(), F_OK) != -1 && !utils::is_dir(index))
-			return (index);
+		{
+			if (index_ext == "html" ||
+				index_ext == "htm" ||
+				(index_ext != "html" && index_ext != "htm" && _config_directives["cgi_" + index_ext] != ""))
+				return (index);
+		}
 	}
 	return ("");
 }
@@ -37,7 +43,7 @@ void Client::regular_response()
 		if (index != "")
 		{
 			utils::log("DEBUG", "index : \"" + index + "\"");
-			if (_config_directives["cgi_" + index.substr(path.find_last_of(".") + 1)] != "")
+			if (_config_directives["cgi_" + index.substr(index.find_last_of(".") + 1)] != "")
 				cgi_response();
 			else
 				file_response(index, index.substr(index.find_last_of(".") + 1));
@@ -120,7 +126,7 @@ void Client::file_response(std::string path, std::string extension)
 void Client::send_response()
 {
 	std::string raw_response;
-	char buffer[BUFFER_SIZE];
+	char buffer[BUFFER_SIZE + 1];
 	int status;
 	size_t ret;
 
@@ -128,8 +134,8 @@ void Client::send_response()
 	{
 		status = wait_cgi();
 
+		memset(buffer, 0, sizeof(buffer));
 		ret = read(_pipe[0], buffer, BUFFER_SIZE);
-		buffer[ret] = '\0';
 		utils::log("DEBUG", "buffer : \"" + std::string(buffer) + "\"");
 		utils::log("DEBUG", "ret : \"" + utils::to_string(ret) + "\"");
 		send(_client_socket, buffer, ret, 0);
@@ -237,7 +243,7 @@ void Client::cgi_response()
 	// utils::log("DEBUG", "cgi_path : \"" + _cgi->path + "\"");
 	// utils::log("DEBUG", "extension : \"" + _cgi->extension + "\"");
 	exec_cgi();
-	wait_cgi();
+	// wait_cgi();
 }
 
 void Client::exec_cgi()
@@ -269,17 +275,15 @@ void Client::exec_cgi()
 int Client::wait_cgi()
 {
 	int status = 0;
+	pid_t pid = waitpid(_cgi->pid, &status, WNOHANG);
 
-	if (!waitpid(_cgi->pid, &status, WNOHANG))
-		return 0;
-	else
-		return 1;
-
-	if (WEXITSTATUS(status) > 0)
-	{
-		utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
-		error_response("500");
-	}
+	// if (WEXITSTATUS(status) > 0)
+	// {
+	// 	utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
+	// 	error_response("500");
+	// 	return (1);
+	// }
+	return (!!pid);
 }
 
 void Client::log_response()
