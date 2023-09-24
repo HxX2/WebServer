@@ -164,6 +164,7 @@ bool Client::set_config(Config &server_config)
 
 void Client::create_temp_file()
 {
+	// TODO: don't create file if no body
 	if (!_temp_file.is_open())
 	{
 		_temp_file_name = ".tmp";

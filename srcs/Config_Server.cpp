@@ -4,21 +4,28 @@
 
 ServerBlock::ServerBlock(void)
 {
-	_name = "";
-	_name = "127.0.0.1";
+	_address = "127.0.0.1";
+	_name = "\"\"";
 	_port = 4000;
 }
 
-ServerBlock::~ServerBlock(void) {}
+ServerBlock::~ServerBlock(void)
+{
+	_paths.clear();
+	_locations.clear();
+	_error_pages.clear();
+}
 
 ServerBlock::ServerBlock(const ServerBlock &block) { *this = block; }
 
 ServerBlock &ServerBlock::operator=(const ServerBlock &block)
 {
-	_name = block._name;
 	_port = block._port;
 	_address = block._address;
+	_name = block._name;
 	_locations = block._locations;
+	_paths = block._paths;
+	_error_pages = block._error_pages;
 	return (*this);
 }
 
@@ -38,9 +45,9 @@ void ServerBlock::set_name(const std::string &name) { _name = name; }
 
 const std::string &ServerBlock::get_name() const { return (_name); }
 
-size_t ServerBlock::get_port() const { return (_port); }
-
 void ServerBlock::set_port(int port) { _port = port; }
+
+size_t ServerBlock::get_port() const { return (_port); }
 
 void ServerBlock::set_address(const std::string &ip) { _address = ip; }
 
@@ -68,7 +75,7 @@ void ServerBlock::set_params(std::string &line)
 
 	directive.parse(line);
 	if (!directive.is_valid())
-		throw std::invalid_argument("server in config contains invalid directive");
+		throw std::invalid_argument("server block contains invalid directive");
 	if (directive.key == "server_name")
 		set_name(directive.value);
 	else if (directive.key == "host")
@@ -79,12 +86,14 @@ void ServerBlock::set_params(std::string &line)
 	}
 	else if (directive.key == "port")
 	{
-		if (!is_port_valid(std::atoi(directive.value.c_str())))
+		int port = atoi(directive.value.c_str());
+		if ((port == 0 && directive.value != "0") || !is_port_valid(port))
 			throw std::invalid_argument("invalid port number");
-		set_port(std::atoi(directive.value.c_str()));
+		set_port(port);
 	}
 	else
 	{
+		// TODO: add this to t_directive as parse special
 		if (directive.key == "error_page")
 		{
 			separator_index = directive.value.find(":");
@@ -120,22 +129,21 @@ void ServerBlock::add_path(std::string &line)
 	_paths.push_back(line.substr(path_start + 1, path_end - path_start - 1));
 }
 
-const t_directives &ServerBlock::get_error_pages() const
+const std::map<std::string, std::string> &ServerBlock::get_error_pages() const
 {
 	return (_error_pages);
 }
 
 std::ostream &operator<<(std::ostream &stream, const ServerBlock &server)
 {
-	stream << "NAME = " << server.get_name() << ", IP = " << server.get_address() << ", PORT = " << server.get_port() << std::endl;
-	stream << "PATHS:";
+	stream << "NAME = " << server.get_name() << ", IP = " << server.get_address() << ", PORT = " << server.get_port() << "\n";
+	stream << BLUE << "\tPATHS: " << RESET;
 	for (size_t i = 0; i < server.get_paths().size(); i++)
-		stream << (i == 0 ? " " : ", ") << server.get_paths()[i];
-	stream << std::endl;
-	stream << "ERROR_PAGES: " << server.get_error_pages().size() << "\n";
-	for (t_directives::const_iterator i = server.get_error_pages().begin(); i != server.get_error_pages().end(); i++)
-		stream << "[" << i->first << "]: " << i->second << "\n";
-	stream << std::endl;
+		stream << (i == 0 ? "" : ", ") << server.get_paths()[i];
+	stream << "\n";
+	stream << BLUE << "\tERROR_PAGES: " << RESET << (server.get_error_pages().size() == 0 ? "No pages" : "") << "\n";
+	for (std::map<std::string, std::string>::const_iterator i = server.get_error_pages().begin(); i != server.get_error_pages().end(); i++)
+		stream << YELLOW << "\t\tPage [" << i->first << "]: " << RESET << i->second << "\n";
 	for (size_t j = 0; j < server.size(); j++)
 		stream << *(server.get_location(j));
 	return (stream);

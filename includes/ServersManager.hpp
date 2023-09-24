@@ -25,7 +25,7 @@ class ServersManager
 {
 private:
 	std::vector<Server *> _servers;
-	Config _config;
+	Config &_config;
 
 	fd_set _currentFds;
 	fd_set _writeFds;
@@ -33,10 +33,11 @@ private:
 
 public:
 	ServersManager();
+	ServersManager(Config &config);
 	~ServersManager();
 
+	void loadConfig();
 	void addServer(Server *server);
-	void loadConfig(Config &config);
 	void removeServer(Server server);
 	void startServers();
 	void stopServers();

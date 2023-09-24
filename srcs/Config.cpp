@@ -1,10 +1,28 @@
 #include "Config.hpp"
 
-// TODO: default values for host, port, server_name
+// Config::Config(void) {}
 
-Config::Config(void) {}
+Config::Config(std::string &filename)
+{
+	_config_file_name = filename;
+	_config_file.open(filename.c_str());
+	if (!_config_file.is_open())
+		throw std::invalid_argument("Unable to open config file '" + filename + "'");
+	read_config();
+}
 
-Config::~Config(void) {}
+Config::~Config(void)
+{
+	utils::log("DEBUG", "Config destructor");
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		for (size_t j = 0; j < _servers[i]->size(); j++)
+			delete _servers[i]->get_location(j);
+		delete _servers[i];
+	}
+	_config_file.close();
+	_servers.clear();
+}
 
 Config::Config(const Config &conf) { *this = conf; }
 
@@ -14,43 +32,33 @@ Config &Config::operator=(const Config &conf)
 	return (*this);
 }
 
-t_servers Config::get_servers() const { return (_servers); }
+size_t Config::size() const
+{
+	return (_servers.size());
+}
 
-size_t Config::size() const { return (_servers.size()); }
+std::vector<ServerBlock *> Config::get_servers() const
+{
+	return (_servers);
+}
+
+ServerBlock Config::get_server(size_t index) const
+{
+	return (*_servers[index]);
+}
 
 bool Config::is_server(std::string &line) const
 {
 	return (
-		!line.compare(0, 6, "server") && (std::string(" {\n").find(line[6]) != std::string::npos || line.size() == 6));
+		!line.compare(0, 6, "server") &&
+		(std::string(" {\n").find(line[6]) != std::string::npos || line.size() == 6));
 }
 
 bool Config::is_location(std::string &line) const
 {
 	return (
-		!line.compare(0, 8, "location") && std::string(" {\n").find(line[8]) != std::string::npos);
-}
-
-void Config::read(std::string filename)
-{
-	parse_params params;
-
-	_config_file.open(filename.c_str());
-	if (_config_file.fail())
-		throw std::invalid_argument("Unable to open config file");
-	else
-	{
-		while (std::getline(_config_file, params.tmp_line))
-		{
-			utils::remove_comments(params.tmp_line);
-			utils::trim_str(params.tmp_line);
-			if (!params.tmp_line.empty())
-				parse(params);
-		}
-		if (params.stack.size() != 0)
-			throw std::invalid_argument("Brakets not closed properly");
-		if (this->size() == 0)
-			throw std::invalid_argument("The config file is empty");
-	}
+		!line.compare(0, 8, "location") &&
+		std::string(" {\n").find(line[8]) != std::string::npos);
 }
 
 bool Config::is_block_head(std::string &line) const
@@ -58,7 +66,25 @@ bool Config::is_block_head(std::string &line) const
 	return (is_server(line) || is_location(line));
 }
 
-void Config::parse(parse_params &params)
+void Config::read_config(void)
+{
+	parsing_params params;
+
+	while (std::getline(_config_file, params.tmp_line))
+	{
+		utils::remove_comments(params.tmp_line);
+		utils::trim_str(params.tmp_line);
+		if (!params.tmp_line.empty())
+			parse_config(params);
+	}
+	if (params.stack.size() != 0)
+		throw std::invalid_argument("Brakets not closed properly");
+	if (this->size() == 0)
+		throw std::invalid_argument("The config file is empty");
+}
+
+// TODO: check paths if they are valid
+void Config::parse_config(parsing_params &params)
 {
 	if (is_block_head(params.tmp_line) || params.tmp_line != "}")
 	{
@@ -74,18 +100,16 @@ void Config::parse(parse_params &params)
 	}
 	else if (params.tmp_line == "}")
 	{
+		if (_servers.size() <= (size_t)params.server_index)
+			_servers.push_back(new ServerBlock);
+		if (_servers[params.server_index]->size() <= (size_t)params.location_index)
+			_servers[params.server_index]->add_location(new LocationBlock);
 		while (!params.stack.empty() && !is_block_head(params.stack.top()))
 		{
-			if (_servers.size() <= (size_t)params.server_index)
-				_servers.push_back(new ServerBlock);
 			if (params.block == SERVER)
 				_servers[params.server_index]->set_params(params.stack.top());
 			else
-			{
-				if (_servers[params.server_index]->size() <= (size_t)params.location_index)
-					_servers[params.server_index]->add_location(new LocationBlock);
 				_servers[params.server_index]->get_location(params.location_index)->add_directive(params.stack.top());
-			}
 			params.stack.pop();
 		}
 		if (params.block == SERVER && _servers[params.server_index]->size() == 0)
@@ -96,33 +120,30 @@ void Config::parse(parse_params &params)
 			_servers[params.server_index]->get_location(params.location_index)->set_path(params.stack.top());
 		}
 		params.stack.pop();
-		params.block = (params.block == LOCATION ? SERVER : GLOBAL);
+		params.toggle_block();
 	}
 }
 
-Config::t_sockets Config::get_sockets()
+bool compare_servers(ServerBlock *first, ServerBlock *second)
 {
-	t_sockets result;
-	t_socket tmp;
-	bool is_new;
+	return (first->get_port() == second->get_port() && first->get_address() == second->get_address());
+}
 
-	for (size_t i = 0; i < _servers.size(); i++)
+std::vector<t_socket> Config::get_sockets()
+{
+	std::vector<t_socket> result;
+	std::vector<ServerBlock *> temp = get_servers();
+	std::vector<ServerBlock *>::iterator it;
+
+	std::sort(temp.begin(), temp.end(), compare_servers);
+	it = std::unique(temp.begin(), temp.end(), compare_servers);
+	temp.resize(std::distance(temp.begin(), it));
+	for (size_t i = 0; i < temp.size(); i++)
 	{
-		is_new = true;
-		for (size_t j = 0; j < result.size(); j++)
-		{
-			if (_servers[i]->is_match(result[j].address, result[j].port))
-			{
-				is_new = false;
-				break;
-			}
-		}
-		if (is_new)
-		{
-			tmp.address = _servers[i]->get_address();
-			tmp.port = _servers[i]->get_port();
-			result.push_back(tmp);
-		}
+		t_socket tmp;
+		tmp.address = temp[i]->get_address();
+		tmp.port = temp[i]->get_port();
+		result.push_back(tmp);
 	}
 	return (result);
 }
@@ -154,7 +175,7 @@ std::string get_directory(const std::string &path)
 	return std::string(path + (path[path.size() - 1] == '/' ? "" : "/"));
 }
 
-t_directives Config::get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path)
+std::map<std::string, std::string> Config::get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path)
 {
 	ssize_t server_i = -1, max_similarity = -1, location_i = -1;
 	utils::t_str_arr entries;
@@ -192,18 +213,20 @@ t_directives Config::get_config(const std::string &server_address, size_t server
 		return (_servers[server_i]->get_error_pages());
 	else
 	{
-		requested_path.erase(0, _servers[server_i]->get_location(location_i)->get_path().size());
-		if (requested_path.empty())
+		if (_servers[server_i]->get_location(location_i)->get_path() == requested_path)
 			requested_path = "/";
+		else if (_servers[server_i]->get_location(location_i)->get_path() != "/")
+			requested_path.erase(0, _servers[server_i]->get_location(location_i)->get_path().size());
 	}
 	return (_servers[server_i]->get_location(location_i)->get_directives());
 }
 
 std::ostream &operator<<(std::ostream &stream, const Config &conf)
 {
-	t_servers servers = conf.get_servers();
-
 	for (size_t i = 0; i < conf.size(); i++)
-		stream << GREEN << "==> Server [ " << i + 1 << " ]: " << RESET << *(servers[i]);
+	{
+		stream << GREEN << "==> Server [ " << i + 1 << " ]: " << RESET;
+		stream << conf.get_server(i);
+	}
 	return stream;
 }

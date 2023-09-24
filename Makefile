@@ -10,13 +10,12 @@ SRCS		= Config.cpp \
 			  Config_Server.cpp \
 			  main.cpp \
 			  Client.cpp \
-			  Server.cpp \
+			  Request.cpp \
+			  Response.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \
 			  Templates.cpp \
-			  Request.cpp \
-			  Response.cpp
-			  
+			  Server.cpp
 
 OBJ_DIR		= obj
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
@@ -30,7 +29,7 @@ debug: $(OBJS)
 	$(CC) $(OBJS) $(FLAGS) -D __DEBUG=true -g3 -fsanitize=address -o $(NAME)
 
 $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp
-	$(CC) $(FLAGS) -c $< -o $@
+	$(CC) $(FLAGS) -g3 -c $< -o $@
 
 clean:
 	rm -rf $(OBJS)

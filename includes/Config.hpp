@@ -1,5 +1,5 @@
-#ifndef __CONFIG_HPP
-#define __CONFIG_HPP
+#ifndef __CONFIG_HPP_
+#define __CONFIG_HPP_
 
 #include <arpa/inet.h>
 
@@ -10,6 +10,7 @@
 #include <exception>
 #include <map>
 #include <stack>
+#include <algorithm>
 #include <vector>
 
 #include "general.hpp"
@@ -23,9 +24,6 @@ class ServerBlock;
 class Config;
 
 // ================= TYPEDEFS
-typedef std::map<std::string, std::string> t_directives;
-typedef std::vector<LocationBlock *> t_locations;
-typedef std::vector<ServerBlock *> t_servers;
 typedef enum
 {
 	SERVER,
@@ -44,9 +42,7 @@ struct t_directive
 
 		separator_i = directive.find_first_of(" \t");
 		key = directive.substr(0, separator_i);
-		value = separator_i != std::string::npos
-					? directive.substr(separator_i + 1)
-					: "";
+		value = separator_i != std::string::npos ? directive.substr(separator_i + 1) : "";
 	}
 
 	bool is_key_valid()
@@ -61,8 +57,7 @@ struct t_directive
 
 	bool is_valid()
 	{
-		return (
-			is_key_valid() && key.size() != 0 && value.size() != 0);
+		return (is_key_valid() && key.size() != 0 && value.size() != 0);
 	}
 };
 
@@ -71,7 +66,7 @@ class LocationBlock
 {
 private:
 	std::string _path;
-	t_directives _directives;
+	std::map<std::string, std::string> _directives;
 
 public:
 	LocationBlock(void);
@@ -82,19 +77,19 @@ public:
 	size_t size(void) const;
 	const std::string &get_path(void) const;
 	void set_path(std::string &line);
-	const t_directives &get_directives(void) const;
+	const std::map<std::string, std::string> &get_directives(void) const;
 	void add_directive(std::string &line);
 };
 
 class ServerBlock
 {
 private:
-	std::string _name;
 	size_t _port;
 	std::string _address;
-	t_locations _locations;
-	utils::t_str_arr _paths;
-	t_directives _error_pages;
+	std::string _name;
+	std::vector<std::string> _paths;
+	std::vector<LocationBlock *> _locations;
+	std::map<std::string, std::string> _error_pages;
 
 public:
 	ServerBlock(void);
@@ -108,8 +103,7 @@ public:
 	void set_name(const std::string &name);
 	const std::string &get_address() const;
 	void set_address(const std::string &ip);
-	const t_directives &get_error_pages() const;
-
+	const std::map<std::string, std::string> &get_error_pages() const;
 	void add_location(LocationBlock *new_location);
 	LocationBlock *get_location(size_t index) const;
 	size_t size(void) const;
@@ -117,19 +111,19 @@ public:
 	bool is_address_valid(const std::string &address) const;
 	bool is_port_valid(const size_t &port) const;
 	bool is_match(const std::string &address, const size_t port) const;
-	const utils::t_str_arr &get_paths(void) const;
+	const std::vector<std::string> &get_paths(void) const;
 	void add_path(std::string &line);
 };
 
-struct parse_params
+struct parsing_params
 {
-	std::string tmp_line;
 	t_block block;
 	ssize_t server_index;
 	ssize_t location_index;
+	std::string tmp_line;
 	std::stack<std::string> stack;
 
-	parse_params(void)
+	parsing_params(void)
 	{
 		block = GLOBAL;
 		server_index = -1;
@@ -144,38 +138,60 @@ struct parse_params
 			location_index = -1;
 		location_index += (curr_block == LOCATION);
 	}
+
+	void set_block(void)
+	{
+		if (!tmp_line.compare(0, 6, "server") &&
+			(std::string(" {\n").find(tmp_line[6]) != std::string::npos || tmp_line.size() == 6))
+			block = SERVER;
+		else if (!tmp_line.compare(0, 8, "location") &&
+				 std::string(" {\n").find(tmp_line[8]) != std::string::npos)
+		{
+			if (block == GLOBAL)
+				throw std::invalid_argument("Location block needs to be inside a server block");
+			block = LOCATION;
+		}
+	}
+
+	void toggle_block(void)
+	{
+		block = (block == LOCATION ? SERVER : GLOBAL);
+	}
+};
+
+struct t_socket
+{
+	std::string address;
+	size_t port;
 };
 
 class Config
 {
 private:
+	std::string _config_file_name;
 	std::ifstream _config_file;
-	t_servers _servers;
+	std::vector<ServerBlock *> _servers;
 
 public:
-	struct t_socket
-	{
-		std::string address;
-		size_t port;
-	};
-
 	typedef std::vector<t_socket> t_sockets;
 
 public:
 	Config(void);
+	Config(std::string &filename);
 	~Config(void);
 	Config(const Config &conf);
 	Config &operator=(const Config &conf);
 
 	size_t size() const;
-	t_servers get_servers() const;
+	std::vector<ServerBlock *> get_servers() const;
+	ServerBlock get_server(size_t index) const;
 	bool is_server(std::string &line) const;
 	bool is_location(std::string &line) const;
-	void read(std::string filename);
 	bool is_block_head(std::string &line) const;
-	void parse(parse_params &params);
-	t_sockets get_sockets();
-	t_directives get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path);
+	void read_config(void);
+	void parse_config(parsing_params &params);
+	std::vector<t_socket> get_sockets();
+	std::map<std::string, std::string> get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path);
 };
 
 std::ostream &operator<<(std::ostream &stream, const LocationBlock &location);

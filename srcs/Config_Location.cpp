@@ -2,9 +2,12 @@
 
 // ========== LocationBlock Class
 
-LocationBlock::LocationBlock(void) : _path("") {}
+LocationBlock::LocationBlock(void) {}
 
-LocationBlock::~LocationBlock(void) {}
+LocationBlock::~LocationBlock(void)
+{
+	_directives.clear();
+}
 
 LocationBlock::LocationBlock(const LocationBlock &block) { *this = block; }
 
@@ -27,6 +30,8 @@ const std::string &LocationBlock::get_path(void) const
 
 void LocationBlock::set_path(std::string &line)
 {
+	// TODO: check if path is valid
+	// ? line = "location /path/of/location{}"
 	size_t path_start, path_end;
 
 	path_start = line.find_first_of(" \t");
@@ -34,7 +39,7 @@ void LocationBlock::set_path(std::string &line)
 	_path = line.substr(path_start + 1, path_end - path_start - 1);
 }
 
-const t_directives &LocationBlock::get_directives(void) const
+const std::map<std::string, std::string> &LocationBlock::get_directives(void) const
 {
 	return (_directives);
 }
@@ -62,7 +67,7 @@ void LocationBlock::add_directive(std::string &line)
 
 std::ostream &operator<<(std::ostream &stream, const LocationBlock &location)
 {
-	t_directives::const_iterator it = location.get_directives().begin();
+	std::map<std::string, std::string>::const_iterator it = location.get_directives().begin();
 
 	stream << BLUE << "\tLocation: " << RESET << "\"" << location.get_path() << "\"" << std::endl;
 	while (it != location.get_directives().end())

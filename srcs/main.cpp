@@ -1,26 +1,23 @@
 #include "Config.hpp"
 #include "Request.hpp"
-#include <ServersManager.hpp>
+#include "utils.hpp"
+#include "ServersManager.hpp"
 
 int main(int argc, const char *argv[])
 {
-	Config cnf;
-	ServersManager manager;
+	std::string config_path;
 
-	if (argc != 2)
-		std::cerr << "Usage: ./webserv [config_file.conf]" << std::endl;
-	else
+	try
 	{
-		try
-		{
-			cnf.read(argv[1]);
-			manager.loadConfig(cnf);
-			manager.startServers();
-		}
-		catch (const std::exception &e)
-		{
-			std::cerr << RED << "🛑 Error: " << RESET << e.what() << '\n';
-		}
+		config_path = argc == 2 ? argv[1] : "config/webserv.conf";
+		Config cnf(config_path);
+		// ServersManager manager(cnf);
+		// manager.startServers();
+		std::cout << cnf;
+	}
+	catch (const std::exception &error)
+	{
+		std::cerr << RED << "🛑 Error: " << RESET << error.what() << '\n';
 	}
 
 	return (0);

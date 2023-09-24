@@ -1,11 +1,22 @@
 #include "ServersManager.hpp"
 
-ServersManager::ServersManager()
+ServersManager::ServersManager(Config &config) : _config(config)
 {
+	loadConfig();
 }
 
 ServersManager::~ServersManager()
 {
+}
+
+void ServersManager::loadConfig()
+{
+	Config::t_sockets sockets;
+	Config::t_sockets::iterator it;
+
+	sockets = _config.get_sockets();
+	for (it = sockets.begin(); it != sockets.end(); it++)
+		this->addServer(new Server(_config, it->port, it->address));
 }
 
 void ServersManager::addServer(Server *server)
@@ -46,15 +57,4 @@ void ServersManager::stopServers()
 
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->Stop();
-}
-
-void ServersManager::loadConfig(Config &config)
-{
-	Config::t_sockets sockets;
-	Config::t_sockets::iterator it;
-
-	this->_config = config;
-	sockets = _config.get_sockets();
-	for (it = sockets.begin(); it != sockets.end(); it++)
-		this->addServer(new Server(_config, it->port, it->address));
 }
