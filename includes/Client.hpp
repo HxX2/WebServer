@@ -23,6 +23,7 @@ class Client
 {
 private:
 	std::string _method;
+	std::string _original_path;
 	std::string _path;
 	std::string _version;
 	std::map<std::string, std::string> _headers;

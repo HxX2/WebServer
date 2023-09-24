@@ -44,8 +44,8 @@ void Client::regular_response()
 		}
 		else if (_config_directives["autoindex"] == "true")
 		{
-			utils::log("DEBUG", _path);
-			indexer_response(path, _path);
+			utils::log("DEBUG", _original_path);
+			indexer_response(path, _original_path);
 		}
 		else
 			error_response("403");

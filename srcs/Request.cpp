@@ -156,6 +156,7 @@ bool Client::set_request_size()
 
 bool Client::set_config(Config &server_config)
 {
+	_original_path = _path;
 	_config_directives = server_config.get_config(_server_address, _server_port, _server_name, _path);
 	if (!is_allowed_method(_method))
 		return (handle_error("405"));
