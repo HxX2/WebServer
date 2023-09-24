@@ -12,13 +12,11 @@ SRCS		= Config.cpp \
 			  Client.cpp \
 			  Request.cpp \
 			  Response.cpp \
+			  Server.cpp \
 			  ServersManager.cpp \
 			  utils.cpp \
 			  Templates.cpp \
-			  Request.cpp \
-			  Response.cpp
-			  CGI.cpp \
-			  Server.cpp
+			  CGI.cpp
 
 OBJ_DIR		= obj
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))

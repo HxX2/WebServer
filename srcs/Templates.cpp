@@ -29,6 +29,7 @@ void Templates::index(const std::string &path, const std::string &location)
 		utils::log("ERROR", "Indexer: Cannot open directory");
 	while ((_ent = readdir(_dir)) != NULL)
 	{
+		utils::log("DEBUG", path + std::string("/") + std::string(_ent->d_name));
 		this->setLinks(path + std::string("/") + std::string(_ent->d_name), std::string(_ent->d_name));
 	}
 	closedir(_dir);

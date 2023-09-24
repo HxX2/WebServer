@@ -11,9 +11,8 @@ int main(int argc, const char *argv[])
 	{
 		config_path = argc == 2 ? argv[1] : "config/webserv.conf";
 		Config cnf(config_path);
-		// ServersManager manager(cnf);
-		// manager.startServers();
-		std::cout << cnf;
+		ServersManager manager(cnf);
+		manager.startServers();
 	}
 	catch (const std::exception &error)
 	{
