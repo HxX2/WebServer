@@ -4,7 +4,7 @@ CGI::CGI()
 {
 }
 
-CGI::CGI(std::string host, std::string port, std::string uri) : pid(-1), _host(host), _port(port) , _uri(uri)
+CGI::CGI(std::string host, std::string port, std::string uri, std::string query) : pid(-1), _host(host), _port(port), _uri(uri), _query(query)
 {
 }
 
@@ -23,7 +23,7 @@ void CGI::set_meta_variables(str_map_t header, std::string method, std::string v
 	_meta_variables["CONTENT_TYPE"] = header["Content-Type"];
 	_meta_variables["GATEWAY_INTERFACE"] = "CGI/1.1";
 	_meta_variables["PATH_INFO"] = _path_info;
-	_meta_variables["QUERY_STRING"] = _uri.substr(_uri.find('?') + 1);
+	_meta_variables["QUERY_STRING"] = _query;
 	_meta_variables["REQUEST_METHOD"] = method;
 	_meta_variables["REQUEST_URI"] = _uri;
 	_meta_variables["SERVER_NAME"] = _host;
@@ -34,7 +34,7 @@ void CGI::set_meta_variables(str_map_t header, std::string method, std::string v
 
 char **CGI::get_envp()
 {
-	char **envp = new char*[_meta_variables.size() + 1];
+	char **envp = new char *[_meta_variables.size() + 1];
 	int i = 0;
 
 	for (str_map_t::iterator it = _meta_variables.begin(); it != _meta_variables.end(); it++)
@@ -50,6 +50,6 @@ char **CGI::get_envp()
 void CGI::delete_envp(char **envp)
 {
 	for (int i = 0; envp[i]; i++)
-		delete [] envp[i];
-	delete [] envp;
+		delete[] envp[i];
+	delete[] envp;
 }

@@ -25,6 +25,7 @@ private:
 	std::string _method;
 	std::string _original_path;
 	std::string _path;
+	std::string _params;
 	std::string _version;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
@@ -84,8 +85,7 @@ public:
 	void file_response(std::string path, std::string extension);
 	void regular_response();
 	std::string get_index(std::string path);
-	void create_cgi_file();
-	void cgi_response();
+	void cgi_response(std::string &index);
 	void exec_cgi();
 	int wait_cgi();
 };

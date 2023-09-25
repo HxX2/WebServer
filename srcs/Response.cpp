@@ -12,13 +12,25 @@ void Client::handle_response()
 		regular_response();
 }
 
+std::string join_paths(std::string &first, std::string &last)
+{
+	std::string result;
+
+	if (first.at(first.size() - 1) == '/')
+		first.erase(first.size() - 1, 1);
+	if (*last.begin() == '/')
+		last.erase(0, 1);
+	result = first + '/' + last;
+	return (result);
+}
+
 std::string Client::get_index(std::string path)
 {
 	utils::t_str_arr indexes = utils::split_str(_config_directives["index"], ' ');
 
 	for (utils::t_str_arr::iterator it = indexes.begin(); it != indexes.end(); ++it)
 	{
-		std::string index = path + "/" + *it;
+		std::string index = join_paths(path, *it);
 		std::string index_ext = index.substr(index.find_last_of(".") + 1);
 		if (access(index.c_str(), F_OK) != -1 && !utils::is_dir(index))
 		{
@@ -33,9 +45,9 @@ std::string Client::get_index(std::string path)
 
 void Client::regular_response()
 {
-	std::string path = _config_directives["root"] + _path.substr(0, _path.find_last_of("?"));
+	std::string path = join_paths(_config_directives["root"], _path);
 	std::string index = get_index(path);
-	std::string extension = path.substr(path.find_last_of(".") + 1);
+	std::string extension = index == "" ? path.substr(path.find_last_of(".") + 1) : index.substr(index.find_last_of(".") + 1);
 
 	if (utils::is_dir(path))
 	{
@@ -43,10 +55,10 @@ void Client::regular_response()
 		if (index != "")
 		{
 			utils::log("DEBUG", "index : \"" + index + "\"");
-			if (_config_directives["cgi_" + index.substr(index.find_last_of(".") + 1)] != "")
-				cgi_response();
+			if (_config_directives["cgi_" + extension] != "")
+				cgi_response(index);
 			else
-				file_response(index, index.substr(index.find_last_of(".") + 1));
+				file_response(index, extension);
 		}
 		else if (_config_directives["autoindex"] == "true")
 		{
@@ -60,8 +72,8 @@ void Client::regular_response()
 	{
 		if (_method == "DELETE")
 			delete_response(path);
-		else if (_config_directives["cgi_" + extension] != "")
-			cgi_response();
+		else if (access(path.c_str(), F_OK) != -1 && _config_directives["cgi_" + extension] != "")
+			cgi_response(path);
 		else
 			file_response(path, extension);
 	}
@@ -193,7 +205,7 @@ void Client::error_response(std::string status)
 
 void Client::delete_response(std::string file_name)
 {
-	std::cout << "file_name : " << file_name << std::endl;
+	utils::log("DEBUG", "file_name : " + file_name);
 	if (!access(file_name.c_str(), W_OK))
 		remove(file_name.c_str());
 	else
@@ -230,20 +242,16 @@ void Client::post_response()
 	this->_headers["Server"] = "Webserv";
 }
 
-void Client::cgi_response()
+void Client::cgi_response(std::string &index)
 {
-	_cgi = new CGI(_server_name, utils::to_string(_server_port), _path);
-	_cgi->file_path = _config_directives["root"] + _path;
-	_cgi->extension = _path.substr(_path.find_last_of(".") + 1);
+	_cgi = new CGI(_server_name, utils::to_string(_server_port), _path, _params);
+	_cgi->file_path = index;
+	_cgi->extension = index.substr(index.find_last_of(".") + 1);
 	_cgi->path = _config_directives["cgi_" + _cgi->extension];
-
 	_cgi->set_path_info(_cgi->extension);
 	_cgi->set_meta_variables(_headers, _method, _version);
-
-	// utils::log("DEBUG", "cgi_path : \"" + _cgi->path + "\"");
-	// utils::log("DEBUG", "extension : \"" + _cgi->extension + "\"");
 	exec_cgi();
-	// wait_cgi();
+	wait_cgi();
 }
 
 void Client::exec_cgi()
@@ -277,12 +285,12 @@ int Client::wait_cgi()
 	int status = 0;
 	pid_t pid = waitpid(_cgi->pid, &status, WNOHANG);
 
-	// if (WEXITSTATUS(status) > 0)
-	// {
-	// 	utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
-	// 	error_response("500");
-	// 	return (1);
-	// }
+	if (WEXITSTATUS(status) > 0)
+	{
+		utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
+		error_response("500");
+		return (1);
+	}
 	return (!!pid);
 }
 

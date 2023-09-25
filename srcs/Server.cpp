@@ -76,8 +76,12 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 		{
 			if (!(*it)->_is_request_ready)
 				(*it)->handle_request(_server_config);
-			if ((*it)->_is_request_ready && (*it)->_status == "200")
-				(*it)->log_reuqest();
+			if ((*it)->_is_request_ready)
+			{
+				utils::log("DEBUG", "Status Code: " + (*it)->_status);
+				if ((*it)->_status == "200")
+					(*it)->log_reuqest();
+			}
 		}
 		if (FD_ISSET((*it)->_client_socket, writefds))
 		{

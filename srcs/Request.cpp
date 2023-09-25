@@ -92,6 +92,12 @@ bool Client::set_request_line(std::string &line)
 		_path = tokens[1];
 		if (!is_path_valid(_path))
 			return (handle_error("400"));
+		size_t params_i = _path.find_first_of("?");
+		if (params_i != std::string::npos)
+		{
+			_params = _path.substr(params_i + 1);
+			_path = _path.erase(params_i);
+		}
 		_version = tokens[2];
 		if (_version != "HTTP/1.1")
 			return (handle_error("505"));
@@ -281,6 +287,7 @@ void Client::log_reuqest()
 	std::cout
 		<< "Method: [" + _method + "], "
 		<< "Path: [" + _path + "], "
+		<< "Params: [" + _params + "], "
 		<< "Version: [" + _version + "]" << std::endl;
 
 	std::cout << "Headers:\n";
