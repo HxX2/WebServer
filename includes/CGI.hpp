@@ -18,7 +18,7 @@ public:
 	std::string file_path;
 
 private:
-	std::map<std::string, std::string> _meta_variables;
+	std::map<std::string, std::string> _env_variables;
 	std::string _path_info;
 	std::string _host;
 	std::string _port;
