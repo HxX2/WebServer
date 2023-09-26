@@ -8,9 +8,9 @@
 #include <iomanip>
 #include <cstdlib>
 #include <exception>
+#include <algorithm>
 #include <map>
 #include <stack>
-#include <algorithm>
 #include <vector>
 
 #include "general.hpp"
@@ -77,6 +77,7 @@ public:
 	size_t size(void) const;
 	const std::string &get_path(void) const;
 	void set_path(std::string &line);
+	bool is_path_valid(std::string &path);
 	const std::map<std::string, std::string> &get_directives(void) const;
 	void add_directive(std::string &line);
 };
@@ -107,7 +108,7 @@ public:
 	void add_location(LocationBlock *new_location);
 	LocationBlock *get_location(size_t index) const;
 	size_t size(void) const;
-	void set_params(std::string &line);
+	void set_params(std::string &line, std::vector<std::string> &used_ports);
 	bool is_address_valid(const std::string &address) const;
 	bool is_port_valid(const size_t &port) const;
 	bool is_match(const std::string &address, const size_t port) const;
@@ -158,6 +159,7 @@ class Config
 private:
 	std::string _config_file_name;
 	std::ifstream _config_file;
+	std::vector<std::string> _used_ports;
 	std::vector<ServerBlock *> _servers;
 
 public:
@@ -176,7 +178,7 @@ public:
 	bool is_server(std::string &line) const;
 	bool is_location(std::string &line) const;
 	bool is_block_head(std::string &line) const;
-	void throw_error(parsing_params &params, std::string error) const;
+	void throw_error(parsing_params &params, std::string error, bool print_line_number) const;
 	void read_config(void);
 	void parse_config(parsing_params &params);
 	std::vector<t_socket> get_sockets();

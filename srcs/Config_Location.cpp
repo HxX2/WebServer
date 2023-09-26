@@ -28,15 +28,25 @@ const std::string &LocationBlock::get_path(void) const
 	return (_path);
 }
 
+bool LocationBlock::is_path_valid(std::string &path)
+{
+	std::string valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;%=";
+	for (size_t i = 0; i < path.size(); i++)
+		if (valid_chars.find(path[i]) == std::string::npos)
+			return (false);
+	return (true);
+}
+
 void LocationBlock::set_path(std::string &line)
 {
 	// TODO: check if path is valid
-	// ? line = "location /path/of/location{}"
-	size_t path_start, path_end;
+	utils::t_str_arr split_location = utils::split_str(line, ' ');
 
-	path_start = line.find_first_of(" \t");
-	path_end = line.find_last_of(" \t");
-	_path = line.substr(path_start + 1, path_end - path_start - 1);
+	if (split_location.size() != 2)
+		throw std::invalid_argument("location missing path");
+	if (!is_path_valid(split_location[1]))
+		throw std::invalid_argument("location path contains invalid characters");
+	_path = split_location[1];
 }
 
 const std::map<std::string, std::string> &LocationBlock::get_directives(void) const

@@ -181,6 +181,7 @@ void Client::create_temp_file()
 	}
 }
 
+// TODO: replace remove by unlink
 void Client::close_temp_file(bool delete_file = true)
 {
 	_temp_file.close();

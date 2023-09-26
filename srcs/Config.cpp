@@ -64,9 +64,11 @@ bool Config::is_block_head(std::string &line) const
 	return (is_server(line) || is_location(line));
 }
 
-void Config::throw_error(parsing_params &params, std::string error) const
+void Config::throw_error(parsing_params &params, std::string error, bool print_line_number = true) const
 {
-	std::string exception_msg = "Line " + utils::to_string(params.line_number) + ": " + error;
+	std::string exception_msg = print_line_number
+									? "Line " + utils::to_string(params.line_number) + ": " + error
+									: error;
 
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
@@ -93,7 +95,7 @@ void Config::read_config(void)
 	if (params.stack.size() != 0)
 		throw_error(params, "Brakets not closed properly");
 	if (this->size() == 0)
-		throw_error(params, "Config file can't be empty");
+		throw_error(params, "Config file can't be empty", false);
 }
 
 // TODO: check paths if they are valid
@@ -120,7 +122,7 @@ void Config::parse_config(parsing_params &params)
 		while (!params.stack.empty() && !is_block_head(params.stack.top()))
 		{
 			if (params.block == SERVER)
-				_servers[params.server_index]->set_params(params.stack.top());
+				_servers[params.server_index]->set_params(params.stack.top(), _used_ports);
 			else
 				_servers[params.server_index]->get_location(params.location_index)->add_directive(params.stack.top());
 			params.stack.pop();
@@ -129,8 +131,8 @@ void Config::parse_config(parsing_params &params)
 			throw_error(params, "Server block needs to have at least 1 location");
 		else if (params.block == LOCATION)
 		{
-			_servers[params.server_index]->add_path(params.stack.top());
 			_servers[params.server_index]->get_location(params.location_index)->set_path(params.stack.top());
+			_servers[params.server_index]->add_path(params.stack.top());
 		}
 		params.stack.pop();
 		params.toggle_block();
