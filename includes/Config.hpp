@@ -120,12 +120,14 @@ struct parsing_params
 	t_block block;
 	ssize_t server_index;
 	ssize_t location_index;
+	size_t line_number;
 	std::string tmp_line;
 	std::stack<std::string> stack;
 
 	parsing_params(void)
 	{
 		block = GLOBAL;
+		line_number = 1;
 		server_index = -1;
 		location_index = -1;
 	}
@@ -137,20 +139,6 @@ struct parsing_params
 		if (curr_block == SERVER)
 			location_index = -1;
 		location_index += (curr_block == LOCATION);
-	}
-
-	void set_block(void)
-	{
-		if (!tmp_line.compare(0, 6, "server") &&
-			(std::string(" {\n").find(tmp_line[6]) != std::string::npos || tmp_line.size() == 6))
-			block = SERVER;
-		else if (!tmp_line.compare(0, 8, "location") &&
-				 std::string(" {\n").find(tmp_line[8]) != std::string::npos)
-		{
-			if (block == GLOBAL)
-				throw std::invalid_argument("Location block needs to be inside a server block");
-			block = LOCATION;
-		}
 	}
 
 	void toggle_block(void)
@@ -188,6 +176,7 @@ public:
 	bool is_server(std::string &line) const;
 	bool is_location(std::string &line) const;
 	bool is_block_head(std::string &line) const;
+	void throw_error(parsing_params &params, std::string error) const;
 	void read_config(void);
 	void parse_config(parsing_params &params);
 	std::vector<t_socket> get_sockets();

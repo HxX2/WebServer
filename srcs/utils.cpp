@@ -31,6 +31,12 @@ void utils::trim_str(std::string &str)
 	}
 }
 
+void utils::to_lowercase(std::string &line)
+{
+	for (size_t i = 0; i < line.size(); i++)
+		line[i] = tolower(line[i]);
+}
+
 utils::t_str_arr utils::split_str(std::string str, char sep)
 {
 	utils::t_str_arr result;
@@ -133,7 +139,7 @@ std::string utils::http_msg(std::string status)
 	return (statusMessages[status]);
 }
 
-std::string utils::mimetypes(std::string value , bool reverse)
+std::string utils::mimetypes(std::string value, bool reverse)
 {
 	std::map<std::string, std::string> mimeTypes;
 

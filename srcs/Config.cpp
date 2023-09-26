@@ -1,7 +1,5 @@
 #include "Config.hpp"
 
-// Config::Config(void) {}
-
 Config::Config(std::string &filename)
 {
 	_config_file_name = filename;
@@ -58,12 +56,25 @@ bool Config::is_location(std::string &line) const
 {
 	return (
 		!line.compare(0, 8, "location") &&
-		std::string(" {\n").find(line[8]) != std::string::npos);
+		(std::string(" {\n").find(line[8]) != std::string::npos || line.size() == 8));
 }
 
 bool Config::is_block_head(std::string &line) const
 {
 	return (is_server(line) || is_location(line));
+}
+
+void Config::throw_error(parsing_params &params, std::string error) const
+{
+	std::string exception_msg = "Line " + utils::to_string(params.line_number) + ": " + error;
+
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		for (size_t j = 0; j < _servers[i]->size(); j++)
+			delete _servers[i]->get_location(j);
+		delete _servers[i];
+	}
+	throw std::invalid_argument(exception_msg);
 }
 
 void Config::read_config(void)
@@ -74,13 +85,15 @@ void Config::read_config(void)
 	{
 		utils::remove_comments(params.tmp_line);
 		utils::trim_str(params.tmp_line);
+		utils::to_lowercase(params.tmp_line);
 		if (!params.tmp_line.empty())
 			parse_config(params);
+		params.line_number++;
 	}
 	if (params.stack.size() != 0)
-		throw std::invalid_argument("Brakets not closed properly");
+		throw_error(params, "Brakets not closed properly");
 	if (this->size() == 0)
-		throw std::invalid_argument("The config file is empty");
+		throw_error(params, "Config file can't be empty");
 }
 
 // TODO: check paths if they are valid
@@ -94,7 +107,7 @@ void Config::parse_config(parsing_params &params)
 		else if (is_location(params.tmp_line))
 		{
 			if (params.block == GLOBAL)
-				throw std::invalid_argument("Location block needs to be inside a server block");
+				throw_error(params, "Location block needs to be inside a server block");
 			params.set(LOCATION);
 		}
 	}
@@ -102,7 +115,7 @@ void Config::parse_config(parsing_params &params)
 	{
 		if (_servers.size() <= (size_t)params.server_index)
 			_servers.push_back(new ServerBlock);
-		if (_servers[params.server_index]->size() <= (size_t)params.location_index)
+		if (params.block == LOCATION && _servers[params.server_index]->size() <= (size_t)params.location_index)
 			_servers[params.server_index]->add_location(new LocationBlock);
 		while (!params.stack.empty() && !is_block_head(params.stack.top()))
 		{
@@ -113,7 +126,7 @@ void Config::parse_config(parsing_params &params)
 			params.stack.pop();
 		}
 		if (params.block == SERVER && _servers[params.server_index]->size() == 0)
-			throw std::invalid_argument("Server block needs to have at least 1 location");
+			throw_error(params, "Server block needs to have at least 1 location");
 		else if (params.block == LOCATION)
 		{
 			_servers[params.server_index]->add_path(params.stack.top());
