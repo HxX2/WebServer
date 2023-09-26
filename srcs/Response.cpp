@@ -81,6 +81,7 @@ void Client::regular_response()
 
 void Client::redirect_response()
 {
+	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = "301";
 	this->_headers["Location"] = this->_config_directives["redirect"];
@@ -94,6 +95,7 @@ void Client::indexer_response(const std::string &path, const std::string &locati
 	Templates templates;
 
 	templates.index(path, location);
+	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = "200";
 	this->_body = templates.getIndexerPage();
@@ -123,6 +125,7 @@ void Client::file_response(std::string path, std::string extension)
 
 	_res_file.seekg(0, std::fstream::end);
 	utils::log("DEBUG", "mime_type : \"" + mime_type + "\"");
+	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = "200";
 	this->_headers["Content-Type"] = mime_type;
@@ -194,6 +197,7 @@ void Client::error_response(std::string status)
 	std::string path = this->_config_directives["error_page_" + status];
 	Templates templates;
 
+	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = status;
 	this->_body = templates.getErrorPage(status, path);
@@ -214,6 +218,7 @@ void Client::delete_response(std::string file_name)
 		return;
 	}
 
+	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = "204";
 	this->_body = "";
@@ -235,9 +240,11 @@ void Client::post_response()
 	file_name = upload_dir + _temp_file_name.substr(0, _temp_file_name.find_last_of(".")) + utils::mimetypes(_headers["Content-Type"], true);
 	rename(_temp_file_name.c_str(), file_name.c_str());
 
+	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = "201";
-	this->_body = "";
+	this->_body = "Content created";
+	this->_headers["Content-Type"] = "text/html";
 	this->_headers["Date"] = utils::http_date();
 	this->_headers["Server"] = "Webserv";
 }

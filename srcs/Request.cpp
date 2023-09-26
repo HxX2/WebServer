@@ -73,7 +73,6 @@ bool Client::handle_error(std::string status_code)
 {
 	_status = status_code;
 	_is_request_ready = true;
-	remove_client = true;
 	return (false);
 }
 
