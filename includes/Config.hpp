@@ -57,7 +57,7 @@ struct t_directive
 
 	bool is_valid()
 	{
-		return (is_key_valid() && key.size() != 0 && value.size() != 0);
+		return (is_key_valid() && !key.empty() && !value.empty());
 	}
 };
 
@@ -166,7 +166,6 @@ public:
 	typedef std::vector<t_socket> t_sockets;
 
 public:
-	Config(void);
 	Config(std::string &filename);
 	~Config(void);
 	Config(const Config &conf);

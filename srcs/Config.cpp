@@ -131,6 +131,8 @@ void Config::parse_config(parsing_params &params)
 			throw_error(params, "Server block needs to have at least 1 location");
 		else if (params.block == LOCATION)
 		{
+			if (-_servers[params.server_index]->get_location(params.location_index)->size() == 0)
+				throw_error(params, "Location block needs to have at least 1 directive");
 			_servers[params.server_index]->get_location(params.location_index)->set_path(params.stack.top());
 			_servers[params.server_index]->add_path(params.stack.top());
 		}

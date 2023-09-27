@@ -18,7 +18,7 @@ SRCS		= Config.cpp \
 			  Templates.cpp \
 			  CGI.cpp
 
-OBJ_DIR		= obj
+OBJ_DIR		= objs
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
 all: $(NAME)

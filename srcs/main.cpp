@@ -9,10 +9,10 @@ int main(int argc, const char *argv[])
 
 	try
 	{
-		config_path = argc == 2 ? argv[1] : "config/webserv.conf";
+		config_path = argc == 2 ? argv[1] : "configs/webserv.conf";
 		Config conf(config_path);
-		ServersManager manager(conf);
-		manager.startServers();
+		// ServersManager manager(conf);
+		// manager.startServers();
 		std::cout << conf;
 	}
 	catch (const std::exception &error)
