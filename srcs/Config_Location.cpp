@@ -39,10 +39,9 @@ bool LocationBlock::is_path_valid(std::string &path)
 
 void LocationBlock::set_path(std::string &line)
 {
-	// TODO: check if path is valid
 	utils::t_str_arr split_location = utils::split_str(line, ' ');
 
-	if (split_location.size() != 2)
+	if (split_location.size() != 3)
 		throw std::invalid_argument("location missing path");
 	if (!is_path_valid(split_location[1]))
 		throw std::invalid_argument("location path contains invalid characters");

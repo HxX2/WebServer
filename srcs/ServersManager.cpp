@@ -21,12 +21,10 @@ void ServersManager::loadConfig()
 
 void ServersManager::addServer(Server *server)
 {
-	this->_servers.push_back(server);
-}
-
-void ServersManager::removeServer(Server server)
-{
-	(void)server;
+	if (!server->_has_failed)
+		this->_servers.push_back(server);
+	else
+		delete server;
 }
 
 void ServersManager::startServers()

@@ -1,12 +1,7 @@
 #include "Config.hpp"
 
-Config::Config(std::string &filename)
+Config::Config(void)
 {
-	_config_file_name = filename;
-	_config_file.open(filename.c_str());
-	if (!_config_file.is_open())
-		throw std::invalid_argument("Unable to open config file '" + filename + "'");
-	read_config();
 }
 
 Config::~Config(void)
@@ -70,24 +65,20 @@ void Config::throw_error(parsing_params &params, std::string error, bool print_l
 									? "Line " + utils::to_string(params.line_number) + ": " + error
 									: error;
 
-	for (size_t i = 0; i < _servers.size(); i++)
-	{
-		for (size_t j = 0; j < _servers[i]->size(); j++)
-			delete _servers[i]->get_location(j);
-		delete _servers[i];
-	}
 	throw std::invalid_argument(exception_msg);
 }
 
-void Config::read_config(void)
+void Config::read_config(std::string &filename)
 {
 	parsing_params params;
 
+	_config_file.open(filename.c_str());
+	if (!_config_file.is_open())
+		throw std::invalid_argument("Unable to open config file '" + filename + "'");
 	while (std::getline(_config_file, params.tmp_line))
 	{
 		utils::remove_comments(params.tmp_line);
 		utils::trim_str(params.tmp_line);
-		// utils::to_lowercase(params.tmp_line);
 		if (!params.tmp_line.empty())
 			parse_config(params);
 		params.line_number++;
@@ -98,7 +89,6 @@ void Config::read_config(void)
 		throw_error(params, "Config file can't be empty", false);
 }
 
-// TODO: check paths if they are valid
 void Config::parse_config(parsing_params &params)
 {
 	if (is_block_head(params.tmp_line) || params.tmp_line != "}")
@@ -112,11 +102,15 @@ void Config::parse_config(parsing_params &params)
 				throw_error(params, "Location block needs to be inside a server block");
 			params.set(LOCATION);
 		}
+		else if (*(params.tmp_line.end() - 1) == '{')
+			params.set(GLOBAL);
 	}
 	else if (params.tmp_line == "}")
 	{
 		if (_servers.size() <= (size_t)params.server_index)
 			_servers.push_back(new ServerBlock);
+		if (params.block == LOCATION && _servers[params.server_index]->size() <= (size_t)params.location_index)
+			_servers[params.server_index]->add_location(new LocationBlock);
 		while (!params.stack.empty() && !is_block_head(params.stack.top()))
 		{
 			if (params.block == GLOBAL)
@@ -124,15 +118,15 @@ void Config::parse_config(parsing_params &params)
 			else if (params.block == SERVER)
 				_servers[params.server_index]->set_params(params.stack.top(), _hosts);
 			else if (params.block == LOCATION)
-			{
-				if (_servers[params.server_index]->size() <= (size_t)params.location_index)
-					_servers[params.server_index]->add_location(new LocationBlock);
 				_servers[params.server_index]->get_location(params.location_index)->add_directive(params.stack.top());
-			}
 			params.stack.pop();
 		}
 		if (params.block == SERVER && _servers[params.server_index]->size() == 0)
 			throw_error(params, "Server block needs to have at least 1 location");
+		else if (params.block == SERVER && _servers[params.server_index]->get_port() == 0)
+			throw_error(params, "Server block needs to have a port number");
+		else if (params.block == SERVER && _servers[params.server_index]->get_address().empty())
+			throw_error(params, "Server block needs to have an address");
 		else if (params.block == LOCATION)
 		{
 			if (_servers[params.server_index]->get_location(params.location_index)->size() == 0)
@@ -143,6 +137,17 @@ void Config::parse_config(parsing_params &params)
 		params.stack.pop();
 		params.toggle_block();
 	}
+}
+
+void Config::delete_config(void)
+{
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		for (size_t j = 0; j < _servers[i]->size(); j++)
+			delete _servers[i]->get_location(j);
+		delete _servers[i];
+	}
+	_config_file.close();
 }
 
 bool compare_servers(ServerBlock *first, ServerBlock *second)

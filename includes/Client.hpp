@@ -61,13 +61,13 @@ public:
 	~Client();
 
 	void handle_request(Config &server_config);
-	size_t read_buffer(std::string &string_buffer);
+	ssize_t read_buffer(std::string &string_buffer);
 	bool set_request_line(std::string &line);
 	bool set_header(std::string &line);
 	bool set_host_info();
 	bool set_request_size();
 	bool set_config(Config &server_config);
-	void create_temp_file();
+	bool create_temp_file();
 	void close_temp_file(bool delete_file);
 	bool is_path_valid(std::string &path);
 	bool is_allowed_method(std::string &method);

@@ -41,7 +41,7 @@ struct t_directive
 		size_t separator_i;
 
 		separator_i = directive.find_first_of(" \t");
-		key = directive.substr(0, separator_i);
+		key = separator_i != std::string::npos ? directive.substr(0, separator_i) : directive;
 		value = separator_i != std::string::npos ? directive.substr(separator_i + 1) : "";
 	}
 
@@ -157,7 +157,6 @@ struct t_socket
 class Config
 {
 private:
-	std::string _config_file_name;
 	std::ifstream _config_file;
 	std::vector<std::string> _hosts;
 	std::vector<ServerBlock *> _servers;
@@ -166,7 +165,7 @@ public:
 	typedef std::vector<t_socket> t_sockets;
 
 public:
-	Config(std::string &filename);
+	Config(void);
 	~Config(void);
 	Config(const Config &conf);
 	Config &operator=(const Config &conf);
@@ -178,8 +177,9 @@ public:
 	bool is_location(std::string &line) const;
 	bool is_block_head(std::string &line) const;
 	void throw_error(parsing_params &params, std::string error, bool print_line_number) const;
-	void read_config(void);
+	void read_config(std::string &filename);
 	void parse_config(parsing_params &params);
+	void delete_config(void);
 	std::vector<t_socket> get_sockets();
 	std::map<std::string, std::string> get_config(const std::string &server_address, size_t server_port, const std::string &server_name, std::string &requested_path);
 };

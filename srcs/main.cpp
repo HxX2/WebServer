@@ -6,12 +6,12 @@
 int main(int argc, const char *argv[])
 {
 	std::string config_path;
+	Config conf;
 
 	try
 	{
 		config_path = argc == 2 ? argv[1] : "configs/webserv.conf";
-		Config conf(config_path);
-		// std::cout << conf << std::endl;
+		conf.read_config(config_path);
 		ServersManager manager(conf);
 		manager.startServers();
 	}

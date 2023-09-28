@@ -37,7 +37,8 @@ private:
 	Config &_server_config;
 
 public:
-	Server();
+	bool _has_failed;
+
 	Server(Config &server_config, int port, std::string address);
 	~Server();
 

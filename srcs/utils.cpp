@@ -5,9 +5,6 @@ void utils::remove_comments(std::string &str)
 	size_t s = str.find('#');
 	if (s != std::string::npos)
 		str.erase(s);
-	size_t bracket = str.find('{');
-	if (bracket != std::string::npos)
-		str.erase(bracket, 1);
 }
 
 void utils::trim_str(std::string &str)
@@ -16,14 +13,15 @@ void utils::trim_str(std::string &str)
 
 	if (str.empty())
 		return;
+	if (!str.empty() && str.at(str.size() - 1) == ';')
+		str.erase(str.size() - 1);
 	for (s = 0; str[s] == ' ' || str[s] == '\t'; s++)
 		;
 	str.erase(0, s);
 	for (e = str.size() - 1; !str.empty() && (str[e] == ' ' || str[e] == '\t'); e--)
 		;
 	str.erase(e + 1);
-	if (!str.empty() && str.at(str.size() - 1) == ';')
-		str.erase(str.size() - 1);
+
 	if ((s = str.find_first_of(" \t")) != std::string::npos)
 	{
 		e = str.find_first_not_of(" \t", s);

@@ -33,15 +33,15 @@ size_t extract_chunk(std::string &buffer, std::string &chunk, size_t chunk_size)
 	return (chunk.size());
 }
 
-size_t Client::read_buffer(std::string &string_buffer)
+ssize_t Client::read_buffer(std::string &string_buffer)
 {
 	int request_len;
 	char buffer[BUFFER_SIZE + 1];
 
 	memset(buffer, 0, sizeof(buffer));
 	request_len = recv(_client_socket, buffer, BUFFER_SIZE, 0);
-	if (request_len < 0)
-		utils::log("ERROR", "failed to read request");
+	if (request_len <= 0)
+		return (-1);
 	string_buffer.insert(0, buffer, request_len);
 	return (request_len);
 }
@@ -168,25 +168,35 @@ bool Client::set_config(Config &server_config)
 	return (true);
 }
 
-void Client::create_temp_file()
+bool Client::create_temp_file()
 {
-	// TODO: don't create file if no body
 	if (!_temp_file.is_open())
 	{
 		_temp_file_name = ".tmp";
 		utils::time_now(_temp_file_name);
 		_temp_file.open(_temp_file_name.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
 		if (_temp_file.fail())
+		{
 			utils::log("ERROR", "couldn't open temp file");
+			remove_client = true;
+			_is_request_ready = true;
+			send_body = true;
+			return (false);
+		}
 	}
+	return (true);
 }
 
-// TODO: replace remove by unlink
 void Client::close_temp_file(bool delete_file = true)
 {
 	_temp_file.close();
 	if (delete_file && ::remove(_temp_file_name.c_str()) != 0)
+	{
 		utils::log("ERROR", "Couldn't delete temp file");
+		remove_client = true;
+		_is_request_ready = true;
+		send_body = true;
+	}
 }
 
 void Client::handle_request(Config &server_config)
@@ -194,7 +204,15 @@ void Client::handle_request(Config &server_config)
 	size_t current_chunk_len = 0;
 	std::string string_buffer, temp_line;
 
-	read_buffer(string_buffer);
+	if (read_buffer(string_buffer) == -1)
+	{
+		send_body = true;
+		_is_request_ready = true;
+		remove_client = true;
+		return;
+	}
+
+	_is_request_ready = true;
 
 	if (_is_first_read)
 	{
@@ -225,7 +243,8 @@ void Client::handle_request(Config &server_config)
 			return;
 		if (!set_request_size())
 			return;
-		create_temp_file();
+		if (!create_temp_file())
+			return;
 
 		_is_first_read = false;
 	}

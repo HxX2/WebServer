@@ -241,7 +241,6 @@ void Client::error_response(std::string status)
 	this->_headers["Server"] = "Webserv";
 }
 
-// TODO: replace remove by unlink
 void Client::delete_response(std::string file_name)
 {
 	if (!access(file_name.c_str(), W_OK))

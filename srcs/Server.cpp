@@ -14,12 +14,20 @@
 
 Server::Server(Config &server_config, int port, std::string address) : _server_config(server_config)
 {
+	_has_failed = false;
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_server_socket < 0)
+	{
 		utils::log("ERROR", "Failed to create socket");
+		_has_failed = true;
+	}
 
 	if (fcntl(_server_socket, F_SETFL, O_NONBLOCK) < 0)
+	{
 		utils::log("ERROR", "Failed to set socket flags");
+		_has_failed = true;
+		close(_server_socket);
+	}
 
 	memset(&_serverAddress, 0, sizeof(_serverAddress));
 	_serverAddress.sin_family = AF_INET;
@@ -29,10 +37,18 @@ Server::Server(Config &server_config, int port, std::string address) : _server_c
 	setsockopt(_server_socket, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt));
 
 	if (bind(_server_socket, (struct sockaddr *)&_serverAddress, sizeof(_serverAddress)) < 0)
+	{
 		utils::log("ERROR", "Failed to bind socket");
+		_has_failed = true;
+		close(_server_socket);
+	}
 
 	if (listen(_server_socket, SOMAXCONN) < 0)
+	{
 		utils::log("ERROR", "Failed to listen");
+		_has_failed = true;
+		close(_server_socket);
+	}
 
 	std::cout << YELLOW << "⚡ " << RESET << "Server listening on "
 			  << "\033[4;34m"
@@ -42,6 +58,11 @@ Server::Server(Config &server_config, int port, std::string address) : _server_c
 
 Server::~Server()
 {
+	for (std::list<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		close((*it)->_client_socket);
+		delete *it;
+	}
 	this->Stop();
 }
 
@@ -53,6 +74,7 @@ int Server::getServerSocket() const
 void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 {
 	int client_socket;
+	int is_set_nonblocking;
 
 	if (FD_ISSET(_server_socket, readfds))
 	{
@@ -61,13 +83,18 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 		if (client_socket < 0)
 			utils::log("ERROR", "Failed to accept client");
 
-		std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
-
-		if (fcntl(client_socket, F_SETFL, O_NONBLOCK) < 0)
+		if ((is_set_nonblocking = fcntl(client_socket, F_SETFL, O_NONBLOCK)) < 0)
+		{
 			utils::log("ERROR", "Failed to set client socket flags");
+			close(client_socket);
+		}
 
-		FD_SET(client_socket, currentfds);
-		_clients.push_back(new Client(client_socket, _server_socket));
+		if (client_socket > 0 && is_set_nonblocking > 0)
+		{
+			std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
+			FD_SET(client_socket, currentfds);
+			_clients.push_back(new Client(client_socket, _server_socket));
+		}
 	}
 
 	for (std::list<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)

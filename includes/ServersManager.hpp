@@ -32,13 +32,11 @@ private:
 	fd_set _readFds;
 
 public:
-	ServersManager();
 	ServersManager(Config &config);
 	~ServersManager();
 
 	void loadConfig();
 	void addServer(Server *server);
-	void removeServer(Server server);
 	void startServers();
 	void stopServers();
 };

@@ -4,9 +4,9 @@
 
 ServerBlock::ServerBlock(void)
 {
-	_address = "127.0.0.1";
+	_address = "";
 	_name = "\"\"";
-	_port = 4000;
+	_port = 0;
 }
 
 ServerBlock::~ServerBlock(void)
