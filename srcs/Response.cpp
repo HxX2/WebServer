@@ -261,10 +261,20 @@ void Client::delete_response(std::string file_name)
 
 void Client::post_response()
 {
+	std::string path = join_paths(_config_directives["root"], _path);
+	std::string index = get_index(path);
+	std::string extension = index == "" ? path.substr(path.find_last_of(".") + 1) : index.substr(index.find_last_of(".") + 1);
+
 	std::string upload_dir = _config_directives["upload_dir"];
 	std::string file_name;
 
-	if (utils::is_dir(upload_dir) && access(upload_dir.c_str(), W_OK))
+	if (access(path.c_str(), F_OK) != -1 && _config_directives["cgi_" + extension] != "")
+	{
+		cgi_response(path);
+		return;
+	}
+
+	if (upload_dir == "" || !utils::is_dir(upload_dir) || !access(upload_dir.c_str(), W_OK))
 	{
 		close_temp_file(true);
 		error_response("500");
