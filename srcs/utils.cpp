@@ -239,13 +239,8 @@ void utils::log(std::string type, std::string msg)
 {
 	if (type == "DEBUG")
 		std::cout << GREEN << "[" << type << "] " << RESET << msg << std::endl;
-	else if (__DEBUG && type == "ERROR")
-	{
+	else if (type == "ERROR")
 		std::cerr << RED << "[" << type << "] " << RESET << msg << std::endl;
-		if (__DEBUG)
-			perror("msg");
-		exit(1);
-	}
 	else if (type == "WARNING")
 		std::cerr << YELLOW << "[" << type << "] " << RESET << msg << std::endl;
 	else if (type == "INFO")

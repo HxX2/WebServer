@@ -9,8 +9,4 @@
 #define CYAN "\033[1;36m"
 #define RESET "\033[0m"
 
-#ifndef __DEBUG
-#define __DEBUG false
-#endif
-
 #endif

@@ -51,10 +51,8 @@ void Client::regular_response()
 
 	if (utils::is_dir(path))
 	{
-		utils::log("DEBUG", "autoindex : \"" + _config_directives["autoindex"] + "\"");
 		if (index != "")
 		{
-			utils::log("DEBUG", "index : \"" + index + "\"");
 			if (_config_directives["cgi_" + extension] != "")
 				cgi_response(index);
 			else
@@ -62,7 +60,6 @@ void Client::regular_response()
 		}
 		else if (_config_directives["autoindex"] == "true")
 		{
-			utils::log("DEBUG", _original_path);
 			indexer_response(path, _original_path);
 		}
 		else
@@ -124,7 +121,6 @@ void Client::file_response(std::string path, std::string extension)
 		mime_type = "text/plain";
 
 	_res_file.seekg(0, std::fstream::end);
-	utils::log("DEBUG", "mime_type : \"" + mime_type + "\"");
 	_headers.clear();
 	this->_version = "HTTP/1.1";
 	this->_status = "200";
@@ -133,8 +129,6 @@ void Client::file_response(std::string path, std::string extension)
 	this->_headers["Date"] = utils::http_date();
 	this->_headers["Server"] = "Webserv";
 
-	std::cout << "file size : " << _headers["Content-Length"] << std::endl;
-	std::cout << "file size : " << _res_file.tellg() << std::endl;
 	_res_file.seekg(0, std::fstream::beg);
 }
 
@@ -144,6 +138,7 @@ void Client::send_response()
 	char buffer[BUFFER_SIZE + 1];
 	int status;
 	size_t ret;
+	ssize_t send_val;
 
 	if (_cgi != NULL && _status == "200")
 	{
@@ -160,18 +155,30 @@ void Client::send_response()
 				header.insert(0, "HTTP/1.1 200 OK\r\n");
 			else
 				header.replace(find, 8, "HTTP/1.1 ");
-			send(_client_socket, header.c_str(), header.length(), 0);
+			send_val = send(_client_socket, header.c_str(), header.length(), 0);
+			if (send_val <= 0)
+			{
+				close(_pipe[0]);
+				remove_client = true;
+				send_body = true;
+				return;
+			}
 			send_body = true;
-			utils::log("DEBUG", "buffer : \"" + header + "\"");
 		}
 		else if (status > 0)
 		{
-			send(_client_socket, buffer, ret, 0);
+			send_val = send(_client_socket, buffer, ret, 0);
+			if (send_val <= 0)
+			{
+				close(_pipe[0]);
+				remove_client = true;
+				return;
+			}
 			if (!ret && status)
 			{
 				close(_pipe[0]);
 				remove_client = true;
-				log_response();
+				// log_response();
 			}
 		}
 	}
@@ -183,25 +190,39 @@ void Client::send_response()
 			raw_response += it->first + ": " + it->second + "\r\n";
 
 		raw_response += "\r\n";
-		send(_client_socket, raw_response.c_str(), raw_response.length(), 0);
+		send_val = send(_client_socket, raw_response.c_str(), raw_response.length(), 0);
+		if (send_val <= 0)
+		{
+			remove_client = true;
+			send_body = true;
+			return;
+		}
 		send_body = true;
 	}
 	else if (_res_file.is_open())
 	{
 		_res_file.read(buffer, BUFFER_SIZE);
-		send(_client_socket, buffer, _res_file.gcount(), 0);
+		send_val = send(_client_socket, buffer, _res_file.gcount(), 0);
+		if (send_val <= 0)
+		{
+			_res_file.close();
+			remove_client = true;
+			return;
+		}
 		if (_res_file.eof())
 		{
 			_res_file.close();
 			remove_client = true;
-			log_response();
+			// log_response();
 		}
 	}
 	else
 	{
-		send(_client_socket, this->_body.c_str(), this->_body.length(), 0);
+		send_val = send(_client_socket, this->_body.c_str(), this->_body.length(), 0);
 		remove_client = true;
-		log_response();
+		if (send_val <= 0)
+			return;
+		// log_response();
 	}
 }
 
@@ -223,7 +244,6 @@ void Client::error_response(std::string status)
 // TODO: replace remove by unlink
 void Client::delete_response(std::string file_name)
 {
-	utils::log("DEBUG", "file_name : " + file_name);
 	if (!access(file_name.c_str(), W_OK))
 		remove(file_name.c_str());
 	else
@@ -265,7 +285,6 @@ void Client::post_response()
 
 void Client::cgi_response(std::string &index)
 {
-	utils::log("DEBUG", "path" + _original_path);
 	_cgi = new CGI(_server_name, utils::to_string(_server_port), _original_path, _params);
 	_cgi->file_path = index;
 	_cgi->extension = index.substr(index.find_last_of(".") + 1);
@@ -308,7 +327,7 @@ int Client::wait_cgi()
 
 	if (WEXITSTATUS(status) > 0)
 	{
-		utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
+		utils::log("WARNING", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
 		error_response("500");
 		return (-1);
 	}

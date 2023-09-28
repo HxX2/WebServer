@@ -6,7 +6,7 @@
 /*   By: zlafou <zlafou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 22:09:02 by zlafou            #+#    #+#             */
-/*   Updated: 2023/08/26 05:59:59 by zlafou           ###   ########.fr       */
+/*   Updated: 2023/09/28 20:02:12 by zlafou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,6 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 				(*it)->handle_request(_server_config);
 			if ((*it)->_is_request_ready)
 			{
-				utils::log("DEBUG", "Status Code: " + (*it)->_status);
 				if ((*it)->_status == "200")
 					(*it)->log_reuqest();
 			}
@@ -92,6 +91,7 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 				(*it)->send_response();
 				if ((*it)->remove_client)
 				{
+					(*it)->log_response();
 					utils::log("INFO", "Client disconnected");
 					close((*it)->_client_socket);
 					FD_CLR((*it)->_client_socket, currentfds);

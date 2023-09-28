@@ -41,8 +41,6 @@ void CGI::set_meta_variables(str_map_t header, std::string method, std::string v
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
 		_env_variables[key] = value;
 	}
-	std::cout << "uri" << _uri << std::endl;
-	std::cout << _env_variables["SCRIPT_NAME"] << std::endl;
 }
 
 char **CGI::get_envp()
