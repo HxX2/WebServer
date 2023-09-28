@@ -151,7 +151,7 @@ void Client::send_response()
 
 		memset(buffer, 0, sizeof(buffer));
 		ret = read(_pipe[0], buffer, BUFFER_SIZE);
-		if (!send_body)
+		if (ret && !send_body)
 		{
 			std::string header(buffer);
 
@@ -164,7 +164,7 @@ void Client::send_response()
 			send_body = true;
 			utils::log("DEBUG", "buffer : \"" + header + "\"");
 		}
-		else
+		else if (status > 0)
 		{
 			send(_client_socket, buffer, ret, 0);
 			if (!ret && status)
@@ -174,7 +174,6 @@ void Client::send_response()
 				log_response();
 			}
 		}
-		// utils::log("DEBUG", "ret : \"" + utils::to_string(ret) + "\"");
 	}
 	else if (!send_body)
 	{
@@ -274,7 +273,6 @@ void Client::cgi_response(std::string &index)
 	_cgi->set_path_info(_cgi->extension);
 	_cgi->set_meta_variables(_headers, _method, _version, index);
 	exec_cgi();
-	wait_cgi();
 }
 
 void Client::exec_cgi()
@@ -312,7 +310,7 @@ int Client::wait_cgi()
 	{
 		utils::log("DEBUG", "CGI exited with status : " + utils::to_string(WEXITSTATUS(status)));
 		error_response("500");
-		return (1);
+		return (-1);
 	}
 	return (!!pid);
 }
