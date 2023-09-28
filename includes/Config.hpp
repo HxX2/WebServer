@@ -159,7 +159,7 @@ class Config
 private:
 	std::string _config_file_name;
 	std::ifstream _config_file;
-	std::vector<std::string> _used_ports;
+	std::vector<std::string> _hosts;
 	std::vector<ServerBlock *> _servers;
 
 public:

@@ -87,7 +87,7 @@ void Config::read_config(void)
 	{
 		utils::remove_comments(params.tmp_line);
 		utils::trim_str(params.tmp_line);
-		utils::to_lowercase(params.tmp_line);
+		// utils::to_lowercase(params.tmp_line);
 		if (!params.tmp_line.empty())
 			parse_config(params);
 		params.line_number++;
@@ -117,21 +117,25 @@ void Config::parse_config(parsing_params &params)
 	{
 		if (_servers.size() <= (size_t)params.server_index)
 			_servers.push_back(new ServerBlock);
-		if (params.block == LOCATION && _servers[params.server_index]->size() <= (size_t)params.location_index)
-			_servers[params.server_index]->add_location(new LocationBlock);
 		while (!params.stack.empty() && !is_block_head(params.stack.top()))
 		{
-			if (params.block == SERVER)
-				_servers[params.server_index]->set_params(params.stack.top(), _used_ports);
-			else
+			if (params.block == GLOBAL)
+				throw_error(params, "Invalid config block use either server or location");
+			else if (params.block == SERVER)
+				_servers[params.server_index]->set_params(params.stack.top(), _hosts);
+			else if (params.block == LOCATION)
+			{
+				if (_servers[params.server_index]->size() <= (size_t)params.location_index)
+					_servers[params.server_index]->add_location(new LocationBlock);
 				_servers[params.server_index]->get_location(params.location_index)->add_directive(params.stack.top());
+			}
 			params.stack.pop();
 		}
 		if (params.block == SERVER && _servers[params.server_index]->size() == 0)
 			throw_error(params, "Server block needs to have at least 1 location");
 		else if (params.block == LOCATION)
 		{
-			if (-_servers[params.server_index]->get_location(params.location_index)->size() == 0)
+			if (_servers[params.server_index]->get_location(params.location_index)->size() == 0)
 				throw_error(params, "Location block needs to have at least 1 directive");
 			_servers[params.server_index]->get_location(params.location_index)->set_path(params.stack.top());
 			_servers[params.server_index]->add_path(params.stack.top());

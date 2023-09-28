@@ -68,10 +68,11 @@ size_t ServerBlock::size(void) const
 	return (_locations.size());
 }
 
-void ServerBlock::set_params(std::string &line, std::vector<std::string> &used_ports)
+void ServerBlock::set_params(std::string &line, std::vector<std::string> &hosts)
 {
 	t_directive directive;
 	size_t separator_index;
+	(void)hosts;
 
 	directive.parse(line);
 	if (!directive.is_valid())
@@ -89,9 +90,6 @@ void ServerBlock::set_params(std::string &line, std::vector<std::string> &used_p
 		int port = atoi(directive.value.c_str());
 		if ((port == 0 && directive.value != "0") || !is_port_valid(port))
 			throw std::invalid_argument("invalid port number");
-		else if (std::find(used_ports.begin(), used_ports.end(), directive.value) != used_ports.end())
-			throw std::invalid_argument("port already in use");
-		used_ports.push_back(directive.value);
 		set_port(port);
 	}
 	else
