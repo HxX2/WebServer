@@ -1,5 +1,6 @@
 <?php
-	// echo "Status: 200 OK\r\n";
-	// echo "Content-type: text/html\r\n\r\n";
-	// phpinfo();
-	echo "Hello World!";
+	$content = "This is the content of the response.";
+	header("Status: " . "200 OK");
+	header("Content-Length: " . strlen($content));
+	echo $content;
+?>

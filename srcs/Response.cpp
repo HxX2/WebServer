@@ -151,16 +151,30 @@ void Client::send_response()
 
 		memset(buffer, 0, sizeof(buffer));
 		ret = read(_pipe[0], buffer, BUFFER_SIZE);
-		utils::log("DEBUG", "buffer : \"" + std::string(buffer) + "\"");
-		utils::log("DEBUG", "ret : \"" + utils::to_string(ret) + "\"");
-		send(_client_socket, buffer, ret, 0);
-		if (!ret && status)
+		if (!send_body)
 		{
-			close(_pipe[0]);
-			remove_client = true;
-			log_response();
+			std::string header(buffer);
+
+			size_t find = header.find("Status:");
+			if (find == std::string::npos)
+				header.insert(0, "HTTP/1.1 200 OK\r\n");
+			else
+				header.replace(find, 8, "HTTP/1.1 ");
+			send(_client_socket, header.c_str(), header.length(), 0);
+			send_body = true;
+			utils::log("DEBUG", "buffer : \"" + header + "\"");
 		}
-		send_body = true;
+		else
+		{
+			send(_client_socket, buffer, ret, 0);
+			if (!ret && status)
+			{
+				close(_pipe[0]);
+				remove_client = true;
+				log_response();
+			}
+		}
+		// utils::log("DEBUG", "ret : \"" + utils::to_string(ret) + "\"");
 	}
 	else if (!send_body)
 	{
@@ -252,12 +266,13 @@ void Client::post_response()
 
 void Client::cgi_response(std::string &index)
 {
-	_cgi = new CGI(_server_name, utils::to_string(_server_port), _path, _params);
+	utils::log("DEBUG", "path" + _original_path);
+	_cgi = new CGI(_server_name, utils::to_string(_server_port), _original_path, _params);
 	_cgi->file_path = index;
 	_cgi->extension = index.substr(index.find_last_of(".") + 1);
 	_cgi->path = _config_directives["cgi_" + _cgi->extension];
 	_cgi->set_path_info(_cgi->extension);
-	_cgi->set_meta_variables(_headers, _method, _version);
+	_cgi->set_meta_variables(_headers, _method, _version, index);
 	exec_cgi();
 	wait_cgi();
 }

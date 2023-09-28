@@ -30,7 +30,7 @@ public:
 	CGI(std::string host, std::string port, std::string uri, std::string query);
 	~CGI();
 
-	void set_meta_variables(str_map_t header, std::string method, std::string version);
+	void set_meta_variables(str_map_t header, std::string method, std::string version, std::string script_path);
 	void set_path_info(std::string script);
 	char **get_envp();
 	void delete_envp(char **envp);

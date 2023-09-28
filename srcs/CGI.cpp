@@ -18,8 +18,9 @@ void CGI::set_path_info(std::string script)
 	_path_info = _uri.substr(_uri.find_last_of(script) + 1);
 }
 
-void CGI::set_meta_variables(str_map_t header, std::string method, std::string version)
+void CGI::set_meta_variables(str_map_t header, std::string method, std::string version, std::string script_path)
 {
+	_env_variables["SCRIPT_FILENAME"] = script_path;
 	_env_variables["CONTENT_LENGTH"] = header["Content-Length"];
 	_env_variables["CONTENT_TYPE"] = header["Content-Type"];
 	_env_variables["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -40,6 +41,8 @@ void CGI::set_meta_variables(str_map_t header, std::string method, std::string v
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
 		_env_variables[key] = value;
 	}
+	std::cout << "uri" << _uri << std::endl;
+	std::cout << _env_variables["SCRIPT_NAME"] << std::endl;
 }
 
 char **CGI::get_envp()
