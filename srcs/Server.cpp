@@ -15,6 +15,7 @@
 Server::Server(Config &server_config, int port, std::string address) : _server_config(server_config)
 {
 	_has_failed = false;
+	_has_failed = false;
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_server_socket < 0)
 	{
@@ -89,7 +90,7 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 			close(client_socket);
 		}
 
-		if (client_socket > 0 && is_set_nonblocking > 0)
+		if (client_socket != -1 && is_set_nonblocking != -1)
 		{
 			std::cout << YELLOW << "[REQUEST] " << RESET << std::endl;
 			FD_SET(client_socket, currentfds);
