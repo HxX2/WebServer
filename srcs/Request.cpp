@@ -190,7 +190,7 @@ bool Client::create_temp_file()
 void Client::close_temp_file(bool delete_file = true)
 {
 	_temp_file.close();
-	if (!access(_temp_file_name.c_str(), F_OK))
+	if (access(_temp_file_name.c_str(), F_OK) == -1)
 		return;
 	if (delete_file && ::remove(_temp_file_name.c_str()) != 0)
 	{

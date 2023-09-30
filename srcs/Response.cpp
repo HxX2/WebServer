@@ -16,9 +16,9 @@ std::string join_paths(std::string &first, std::string &last)
 {
 	std::string result;
 
-	if (first.at(first.size() - 1) == '/')
+	if (!first.empty() && first.at(first.size() - 1) == '/')
 		first.erase(first.size() - 1, 1);
-	if (*last.begin() == '/')
+	if (!last.empty() && *last.begin() == '/')
 		last.erase(0, 1);
 	result = first + '/' + last;
 	return (result);
@@ -267,6 +267,7 @@ void Client::post_response()
 
 	std::string upload_dir = _config_directives["upload_dir"];
 	std::string file_name;
+	std::string file_path;
 
 	if (access(path.c_str(), F_OK) != -1 && _config_directives["cgi_" + extension] != "")
 	{
@@ -274,14 +275,15 @@ void Client::post_response()
 		return;
 	}
 
-	if (upload_dir == "" || !utils::is_dir(upload_dir) || !access(upload_dir.c_str(), W_OK))
+	if (upload_dir == "" || !utils::is_dir(upload_dir) || access(upload_dir.c_str(), W_OK) == -1)
 	{
 		close_temp_file(true);
 		error_response("500");
 		return;
 	}
-	file_name = upload_dir + _temp_file_name.substr(0, _temp_file_name.find_last_of(".")) + utils::mimetypes(_headers["Content-Type"], true);
-	rename(_temp_file_name.c_str(), file_name.c_str());
+	file_name = _temp_file_name.substr(0, _temp_file_name.find_last_of(".")) + utils::mimetypes(_headers["Content-Type"], true);
+	file_path = join_paths(upload_dir, file_name);
+	rename(_temp_file_name.c_str(), file_path.c_str());
 
 	_headers.clear();
 	this->_version = "HTTP/1.1";

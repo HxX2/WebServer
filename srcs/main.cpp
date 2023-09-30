@@ -8,6 +8,7 @@ int main(int argc, const char *argv[])
 	std::string config_path;
 	Config conf;
 
+	signal(SIGPIPE, SIG_IGN);
 	try
 	{
 		config_path = argc == 2 ? argv[1] : "configs/webserv.conf";
