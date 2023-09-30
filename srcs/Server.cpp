@@ -106,6 +106,7 @@ void Server::Start(fd_set *readfds, fd_set *writefds, fd_set *currentfds)
 				(*it)->handle_request(_server_config);
 			if ((*it)->_is_request_ready)
 			{
+				(*it)->close_temp_file(false);
 				if ((*it)->_status == "200")
 					(*it)->log_reuqest();
 			}

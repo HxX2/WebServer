@@ -1,6 +1,10 @@
 <?php
-var_dump($HTTP_RAW_POST_DATA);
-var_dump(getenv());
-var_dump($_POST);
+
+echo $_POST['foo'];
 
 ?>
+
+<form action="" method="post">
+	<input type="text" name="foo" id="">
+	<input type="submit" value="Submit">
+</form>

@@ -30,7 +30,10 @@ void ServersManager::addServer(Server *server)
 void ServersManager::startServers()
 {
 	std::vector<Server *>::iterator it;
+	timeval timeout;
 
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 500;
 	FD_ZERO(&_currentFds);
 	for (it = this->_servers.begin(); it != this->_servers.end(); ++it)
 		FD_SET((*it)->getServerSocket(), &_currentFds);
@@ -39,7 +42,7 @@ void ServersManager::startServers()
 	{
 		_readFds = _writeFds = _currentFds;
 
-		if (select(FD_SETSIZE, &_readFds, &_writeFds, NULL, NULL) < 0)
+		if (select(FD_SETSIZE, &_readFds, &_writeFds, NULL, &timeout) < 0)
 			utils::log("ERROR", "Failed to select");
 		else
 		{

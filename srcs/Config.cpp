@@ -116,7 +116,7 @@ void Config::parse_config(parsing_params &params)
 			if (params.block == GLOBAL)
 				throw_error(params, "Invalid config block use either server or location");
 			else if (params.block == SERVER)
-				_servers[params.server_index]->set_params(params.stack.top(), _hosts);
+				_servers[params.server_index]->set_params(params.stack.top());
 			else if (params.block == LOCATION)
 				_servers[params.server_index]->get_location(params.location_index)->add_directive(params.stack.top());
 			params.stack.pop();
@@ -127,10 +127,20 @@ void Config::parse_config(parsing_params &params)
 			throw_error(params, "Server block needs to have a port number");
 		else if (params.block == SERVER && _servers[params.server_index]->get_address().empty())
 			throw_error(params, "Server block needs to have an address");
+		else if (params.block == SERVER)
+		{
+			std::string port = utils::to_string(_servers[params.server_index]->get_port());
+			if (std::find(_used_ports.begin(), _used_ports.end(), port) != _used_ports.end())
+				throw_error(params, "Config contains multiple servers with the same port number");
+			_used_ports.push_back(port);
+		}
 		else if (params.block == LOCATION)
 		{
+			const std::map<std::string, std::string> &directives = _servers[params.server_index]->get_location(params.location_index)->get_directives();
 			if (_servers[params.server_index]->get_location(params.location_index)->size() == 0)
 				throw_error(params, "Location block needs to have at least 1 directive");
+			if (directives.count("root") == 0 && directives.count("redirect") == 0)
+				throw_error(params, "Location block needs to have at least one root/redirect directive");
 			_servers[params.server_index]->get_location(params.location_index)->set_path(params.stack.top());
 			_servers[params.server_index]->add_path(params.stack.top());
 		}

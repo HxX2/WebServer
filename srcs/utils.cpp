@@ -197,6 +197,7 @@ std::string utils::mimetypes(std::string value, bool reverse)
 	mimeTypes["msm"] = "application/octet-stream";
 	mimeTypes["mp3"] = "audio/mpeg";
 	mimeTypes["ra"] = "audio/x-realaudio";
+	mimeTypes["mp4"] = "video/mp4";
 	mimeTypes["mpeg"] = "video/mpeg";
 	mimeTypes["mpg"] = "video/mpeg";
 	mimeTypes["mov"] = "video/quicktime";

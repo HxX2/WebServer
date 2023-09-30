@@ -137,7 +137,7 @@ void Client::send_response()
 	std::string raw_response;
 	char buffer[BUFFER_SIZE + 1];
 	int status;
-	size_t ret;
+	ssize_t ret;
 	ssize_t send_val;
 
 	if (_cgi != NULL && _status == "200")
@@ -146,7 +146,7 @@ void Client::send_response()
 
 		memset(buffer, 0, sizeof(buffer));
 		ret = read(_pipe[0], buffer, BUFFER_SIZE);
-		if (ret && !send_body)
+		if (ret > 0 && !send_body)
 		{
 			std::string header(buffer);
 
@@ -178,7 +178,6 @@ void Client::send_response()
 			{
 				close(_pipe[0]);
 				remove_client = true;
-				// log_response();
 			}
 		}
 	}
@@ -213,7 +212,6 @@ void Client::send_response()
 		{
 			_res_file.close();
 			remove_client = true;
-			// log_response();
 		}
 	}
 	else
@@ -222,7 +220,6 @@ void Client::send_response()
 		remove_client = true;
 		if (send_val <= 0)
 			return;
-		// log_response();
 	}
 }
 
@@ -318,10 +315,15 @@ void Client::exec_cgi()
 			NULL};
 
 		int fd = open(_temp_file_name.c_str(), O_RDONLY);
-		dup2(fd, 0);
+		if (fd == -1)
+		{
+			utils::log("ERROR", "Couldn't open temp file");
+			exit(1);
+		}
+		dup2(fd, STDIN_FILENO);
 		close(fd);
 		close(_pipe[0]);
-		dup2(_pipe[1], 1);
+		dup2(_pipe[1], STDOUT_FILENO);
 		close(_pipe[1]);
 		execve(_cgi->path.c_str(), argv, envp);
 		_cgi->delete_envp(envp);

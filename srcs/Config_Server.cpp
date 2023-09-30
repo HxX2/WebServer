@@ -68,11 +68,10 @@ size_t ServerBlock::size(void) const
 	return (_locations.size());
 }
 
-void ServerBlock::set_params(std::string &line, std::vector<std::string> &hosts)
+void ServerBlock::set_params(std::string &line)
 {
 	t_directive directive;
 	size_t separator_index;
-	(void)hosts;
 
 	directive.parse(line);
 	if (!directive.is_valid())
@@ -94,7 +93,6 @@ void ServerBlock::set_params(std::string &line, std::vector<std::string> &hosts)
 	}
 	else
 	{
-		// TODO: add this to t_directive as parse special
 		if (directive.key == "error_page")
 		{
 			separator_index = directive.value.find(":");

@@ -108,7 +108,7 @@ public:
 	void add_location(LocationBlock *new_location);
 	LocationBlock *get_location(size_t index) const;
 	size_t size(void) const;
-	void set_params(std::string &line, std::vector<std::string> &used_ports);
+	void set_params(std::string &line);
 	bool is_address_valid(const std::string &address) const;
 	bool is_port_valid(const size_t &port) const;
 	bool is_match(const std::string &address, const size_t port) const;
@@ -158,7 +158,7 @@ class Config
 {
 private:
 	std::ifstream _config_file;
-	std::vector<std::string> _hosts;
+	std::vector<std::string> _used_ports;
 	std::vector<ServerBlock *> _servers;
 
 public:
